@@ -1,5 +1,6 @@
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.module.kotlin.*
+import javax.print.DocFlavor.STRING
 
 buildscript {
     repositories {
@@ -80,6 +81,7 @@ class KSource(
     val project: KProject,
     val parts: List<String>,
 ) {
+    val def = parts.joinToString("::")
     constructor(project: KProject, def: String) : this(project, def.split("::"))
 
     fun resolveDir(): File {
@@ -89,7 +91,13 @@ class KSource(
                 //File(kProj.kproject, "modules/korge-dragonbones/v3.2.0")
                 project.settings.ensureGitSources(project.name, repo, path, version)
             }
-            else -> File(parts.joinToString("::"))
+            "maven" -> {
+                TODO()
+            }
+            else -> {
+                if (!def.startsWith(".")) error("Unknown definition '$def'")
+                File(def)
+            }
         }
     }
 }
@@ -114,13 +122,30 @@ class KDependency(
 
  */
 
+interface KDependency {
+    val gradleSourceSet: String
+    val gradleRef: String
+    fun resolve(settings: Settings)
+}
+
+data class KGradleDependency(
+    val type: String,
+    val coordinates: String
+) : KDependency {
+    override val gradleSourceSet = "${type}MainApi"
+    override val gradleRef: String get() = "\"" + coordinates + "\""
+
+    override fun resolve(settings: Settings) {
+    }
+}
+
 data class KProject(
     val name: String,
     val version: String = "unknown",
     val type: String? = "library",
     val src: String? = null,
     val dependencies: List<String> = emptyList()
-) {
+) : KDependency {
     @JsonIgnore lateinit var file: File
     @JsonIgnore lateinit var settings: KSet
 
@@ -140,8 +165,17 @@ data class KProject(
         }
     }
 
-    fun resolveDependency(path: String): KProject {
-        return load(File(file.parentFile, "$path.kproject.json"), settings)
+    fun resolveDependency(path: String): KDependency {
+        val info = path.split("::")
+        return when (info.first()) {
+            "maven" -> {
+                KGradleDependency(info[1], info.last())
+            }
+            else -> {
+                if (!path.startsWith(".")) error("dependency '$path' unrecognised")
+                load(File(file.parentFile, "$path.kproject.json"), settings)
+            }
+        }
     }
 
     fun resolveSource(): File {
@@ -149,7 +183,10 @@ data class KProject(
         return KSource(this, src).resolveDir()
     }
 
-    fun resolve(settings: Settings) {
+    override val gradleSourceSet = "commonMainApi"
+    override val gradleRef = "project(\":${name}\")"
+
+    override fun resolve(settings: Settings) {
         val file = resolveSource()
         println("resolve: $name -> $file")
         settings.include(":${name}")
@@ -158,7 +195,7 @@ data class KProject(
         File(file, "build.gradle").writeText(buildString {
             appendLine("dependencies {")
             for (dep in deps) {
-                appendLine("  add(\"commonMainApi\", project(\":${dep.name}\"))")
+                appendLine("  add(\"${dep.gradleSourceSet}\", ${dep.gradleRef})")
             }
             appendLine("}")
         })

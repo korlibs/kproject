@@ -1,6 +1,0 @@
-{
-  "name": "korge-dragonbones",
-  "type": "library",
-  "version": "3.2.0",
-  "src": "git::korlibs/korge::/korge-dragonbones/src::v3.2.0"
-}
