@@ -1,6 +1,7 @@
-import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.databind.*
+import com.fasterxml.jackson.core.JsonParser
+import com.fasterxml.jackson.annotation.*
 import com.fasterxml.jackson.module.kotlin.*
-import javax.print.DocFlavor.STRING
 
 buildscript {
     repositories {
@@ -17,30 +18,28 @@ buildscript {
 
 rootProject.name = "kproject"
 
-//apply(from = "settings.extra.gradle.kts")
-
-class GIT(val vfs: File) {
+class GIT(val vfs: java.io.File) {
     companion object {
         fun ensureGitRepo(repo: String): String = when {
             repo.contains("://") || repo.contains("git@") || repo.contains(":") -> repo
-            else -> "https://github.com/${File(repo).normalize()}.git"
+            else -> "https://github.com/${java.io.File(repo).normalize()}.git"
         }
     }
 
-    fun downloadArchiveSubfolders(repo: String, path: String, rel: String, vfs: File = this.vfs) {
+    fun downloadArchiveSubfolders(repo: String, path: String, rel: String, vfs: java.io.File = this.vfs) {
         vfs.mkdirs()
         if (vfs.list().isNullOrEmpty()) {
             println(vfs.execToString("git", "clone", "--branch", rel, "--depth", "1", "--filter=blob:none", "--sparse", ensureGitRepo(repo), "."))
-            println(vfs.execToString("git", "sparse-checkout", "set", File(path).normalize().toString().removePrefix("/")))
+            println(vfs.execToString("git", "sparse-checkout", "set", java.io.File(path).normalize().toString().removePrefix("/")))
         }
         vfs.delete()
     }
 }
 
 class KSet {
-    val projectMap by lazy { LinkedHashMap<File, KProject>() }
-    val kproject by lazy { File("${System.getProperty("user.home")}/.kproject").also { it.mkdirs() } }
-    fun ensureGitSources(projectName: String, repo: String, path: String, rel: String): File {
+    val projectMap by lazy { LinkedHashMap<java.io.File, KProject>() }
+    val kproject by lazy { java.io.File("${System.getProperty("user.home")}/.kproject").also { it.mkdirs() } }
+    fun ensureGitSources(projectName: String, repo: String, path: String, rel: String): java.io.File {
         val basePath = "modules/$projectName/${rel}"
         val folder = kproject[basePath].also { it.mkdirs() }
         val outSrc = folder["src"]
@@ -71,11 +70,11 @@ class KSet {
     }
 }
 
-fun File.execToString(vararg params: String): String {
-    return Runtime.getRuntime().exec(params, arrayOf(), this).inputStream.readBytes().toString(Charsets.UTF_8)
+fun java.io.File.execToString(vararg params: String): String {
+    return java.lang.Runtime.getRuntime().exec(params, kotlin.arrayOf(), this).inputStream.readBytes().toString(Charsets.UTF_8)
 }
 
-operator fun File.get(path: String): File = File(this, path)
+operator fun java.io.File.get(path: String): java.io.File = java.io.File(this, path)
 
 class KSource(
     val project: KProject,
@@ -84,7 +83,7 @@ class KSource(
     val def = parts.joinToString("::")
     constructor(project: KProject, def: String) : this(project, def.split("::"))
 
-    fun resolveDir(): File {
+    fun resolveDir(): java.io.File {
         return when (parts.first()) {
             "git" -> {
                 val (_, repo, path, version) = parts
@@ -104,7 +103,7 @@ class KSource(
                 //project.file.parentFile[def].absoluteFile
                 println("this.project.projectDir=${this.project.projectDir}, ${this.project.file}")
                 println("def=${def}")
-                File(this.project.projectDir, def).canonicalFile
+                java.io.File(this.project.projectDir, def).canonicalFile
             }
         }
     }
@@ -154,18 +153,23 @@ data class KProject(
     val src: String? = null,
     val dependencies: List<String> = emptyList()
 ) : KDependency {
-    @JsonIgnore lateinit var file: File
+    @JsonIgnore lateinit var file: java.io.File
     @JsonIgnore lateinit var settings: KSet
 
-    val projectDir: File get() = file.parentFile
+    val projectDir: java.io.File get() = file.parentFile
 
     companion object {
-        private val mapper = jacksonObjectMapper().configure(
-            com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,
-            false
-        )
+        private val mapper = jacksonObjectMapper()
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+            .configure(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true)
+            .configure(JsonParser.Feature.ALLOW_TRAILING_COMMA, true)
+            .configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, true)
+            .configure(JsonParser.Feature.ALLOW_BACKSLASH_ESCAPING_ANY_CHARACTER, true)
+            .configure(JsonParser.Feature.ALLOW_NON_NUMERIC_NUMBERS, true)
+            .configure(JsonParser.Feature.ALLOW_COMMENTS, true)
+            .configure(JsonParser.Feature.ALLOW_LEADING_DECIMAL_POINT_FOR_NUMBERS, true)
 
-        fun load(file: File, settings: KSet): KProject {
+        fun load(file: java.io.File, settings: KSet): KProject {
             return settings.projectMap.getOrPut(file.canonicalFile) {
                 mapper.readValue<KProject>(file.readText()).also {
                     it.file = file.canonicalFile
@@ -183,14 +187,14 @@ data class KProject(
             }
             else -> {
                 if (!path.startsWith(".")) error("dependency '$path' unrecognised")
-                val file1 = File(file.parentFile, "$path.kproject.json")
-                val file2 = File(file.parentFile, "$path/kproject.json")
-                load(listOf(file1, file2).firstOrNull { it.exists() } ?: error("Can't find suitable kproject.json: $file1, $file2"), settings)
+                val file1 = java.io.File(file.parentFile, "$path.kproject.json5")
+                val file2 = java.io.File(file.parentFile, "$path/kproject.json5")
+                load(listOf(file1, file2).firstOrNull { it.exists() } ?: error("Can't find suitable kproject.json5: $file1, $file2"), settings)
             }
         }
     }
 
-    fun resolveSource(): File {
+    fun resolveSource(): java.io.File {
         val src = src ?: "./src"
         return KSource(this, src).resolveDir()
     }
@@ -204,7 +208,7 @@ data class KProject(
         settings.include(":${name}")
         settings.project(":${name}").projectDir = file
         val deps = dependencies.map { resolveDependency(it).also { it.resolve(settings) } }
-        File(file, "build.gradle").writeText(buildString {
+        java.io.File(file, "build.gradle").writeText(buildString {
             appendLine("dependencies {")
             for (dep in deps) {
                 appendLine("  add(\"${dep.gradleSourceSet}\", ${dep.gradleRef})")
@@ -215,7 +219,7 @@ data class KProject(
 }
 
 
-val projectFile = File(rootDir, "kproject.json")
+val projectFile = File(rootDir, "kproject.json5")
 if (!projectFile.exists()) {
     projectFile.writeText("{\"name\": \"${projectFile.parentFile.name}\"}")
 }
@@ -225,3 +229,6 @@ println(project)
 println("kproject=$project")
 //kProj.ensureGitSources(project.name, "korlibs/korge", "korge-dragonbones/src", "v3.2.0")
 project.resolve(settings)
+
+project(":").buildFileName = "gradle/build.gradle.kts"
+println(project(":").buildFile)

@@ -1,0 +1,13 @@
+{
+  "name": "sample",
+  "type": "executable",
+  "version": "0.0.1",
+  "src": "./src",
+  "dependencies": [
+    // "./libs/kotlinx-coroutines",
+    // "git::korlibs/korge::/korge-dragonbones::v3.2.0",
+    // { "korlibs/korge:korge-dragonbones": "3.2.0" },
+    "./libs/korio",
+    "./modules/demo",
+  ],
+}
