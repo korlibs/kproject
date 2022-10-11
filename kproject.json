@@ -4,7 +4,8 @@
   "version": "0.0.1",
   "src": "./src",
   "dependencies": [
-    "./libs/korio"
+    "./libs/korio",
+    "./modules/demo"
   ],
   "__dependencies": [
     "./libs/kotlinx-coroutines",

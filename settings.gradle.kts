@@ -91,6 +91,10 @@ class KSource(
                 //File(kProj.kproject, "modules/korge-dragonbones/v3.2.0")
                 project.settings.ensureGitSources(project.name, repo, path, version)
             }
+            "bundled" -> {
+                //parts.last()
+                TODO()
+            }
             "maven" -> {
                 TODO()
             }
@@ -173,7 +177,9 @@ data class KProject(
             }
             else -> {
                 if (!path.startsWith(".")) error("dependency '$path' unrecognised")
-                load(File(file.parentFile, "$path.kproject.json"), settings)
+                val file1 = File(file.parentFile, "$path.kproject.json")
+                val file2 = File(file.parentFile, "$path/kproject.json")
+                load(listOf(file1, file2).firstOrNull { it.exists() } ?: error("Can't find suitable kproject.json: $file1, $file2"), settings)
             }
         }
     }
