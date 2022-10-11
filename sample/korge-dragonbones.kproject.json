@@ -2,9 +2,5 @@
   "name": "korge-dragonbones",
   "type": "library",
   "version": "3.2.0",
-  "src": {
-    "repo": "korlibs/korge",
-    "path": "korge-dragonbones",
-    "rel": "3.2.0"
-  }
+  "src": "git::korlibs/korge::/korge-dragonbones/src::v3.2.0"
 }

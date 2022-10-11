@@ -4,9 +4,11 @@
   "version": "0.0.1",
   "src": "src",
   "dependencies": [
-    "./korge-dragonbones"
+    "./sample/korge-dragonbones",
+    "./sample/kds"
   ],
   "__dependencies": [
+    "git::korlibs/korge::/korge-dragonbones::v3.2.0",
     { "korlibs/korge:korge-dragonbones": "3.2.0" }
   ]
 }
