@@ -100,7 +100,11 @@ class KSource(
             }
             else -> {
                 if (!def.startsWith(".")) error("Unknown definition '$def'")
-                File(def)
+
+                //project.file.parentFile[def].absoluteFile
+                println("this.project.projectDir=${this.project.projectDir}, ${this.project.file}")
+                println("def=${def}")
+                File(this.project.projectDir, def).canonicalFile
             }
         }
     }
@@ -153,6 +157,8 @@ data class KProject(
     @JsonIgnore lateinit var file: File
     @JsonIgnore lateinit var settings: KSet
 
+    val projectDir: File get() = file.parentFile
+
     companion object {
         private val mapper = jacksonObjectMapper().configure(
             com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,
@@ -162,7 +168,7 @@ data class KProject(
         fun load(file: File, settings: KSet): KProject {
             return settings.projectMap.getOrPut(file.canonicalFile) {
                 mapper.readValue<KProject>(file.readText()).also {
-                    it.file = file
+                    it.file = file.canonicalFile
                     it.settings = settings
                 }
             }
@@ -209,7 +215,7 @@ data class KProject(
 }
 
 
-val projectFile = File("./kproject.json")
+val projectFile = File(rootDir, "kproject.json")
 if (!projectFile.exists()) {
     projectFile.writeText("{\"name\": \"${projectFile.parentFile.name}\"}")
 }
