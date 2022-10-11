@@ -14,6 +14,15 @@ allprojects {
     kotlin {
         jvm {
             withJava()
+            //sourceSet.kotlin.srcDir(folder)
+            println("sourceSets=${sourceSets.names}")
+        }
+        js {
+            browser()
+        }
+        for (target in listOf("common", "jvm", "js")) {
+            sourceSets["${target}Main"].kotlin.srcDir(file("src/$target/src"))
+            sourceSets["${target}Main"].resources.srcDir(file("src/$target/resources"))
         }
     }
 }

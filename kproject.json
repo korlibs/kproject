@@ -5,7 +5,8 @@
   "src": "src",
   "dependencies": [
     "./sample/korge-dragonbones",
-    "./sample/kds"
+    "./sample/korio",
+    "./sample/kotlinx-coroutines"
   ],
   "__dependencies": [
     "git::korlibs/korge::/korge-dragonbones::v3.2.0",

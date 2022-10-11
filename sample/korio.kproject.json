@@ -1,0 +1,12 @@
+{
+  "name": "korio",
+  "type": "library",
+  "version": "3.2.0",
+  "src": "git::korlibs/korge::/korio/src::v3.2.0",
+  "dependencies": [
+    "./kds",
+    "./klock",
+    "./kmem",
+    "./kotlinx-coroutines"
+  ]
+}

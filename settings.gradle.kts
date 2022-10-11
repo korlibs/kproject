@@ -30,7 +30,7 @@ class GIT(val vfs: File) {
         vfs.mkdirs()
         if (vfs.list().isNullOrEmpty()) {
             println(vfs.execToString("git", "clone", "--branch", rel, "--depth", "1", "--filter=blob:none", "--sparse", ensureGitRepo(repo), "."))
-            println(vfs.execToString("git", "sparse-checkout", "set", File(path).normalize().toString()))
+            println(vfs.execToString("git", "sparse-checkout", "set", File(path).normalize().toString().removePrefix("/")))
         }
         vfs.delete()
     }
@@ -43,12 +43,25 @@ class KSet {
         val basePath = "modules/$projectName/${rel}"
         val folder = kproject[basePath].also { it.mkdirs() }
         val outSrc = folder["src"]
+        val paramsFile = folder[".params"]
+        val paramsStr = "$projectName::$repo::$path::$rel"
+
+        if (paramsFile.takeIf { it.exists() }?.readText() != paramsStr) {
+            //println("*******************")
+            outSrc.deleteRecursively()
+            paramsFile.parentFile.mkdirs()
+            paramsFile.writeText(paramsStr)
+        }
+        //println("---------------")
+
         if (!outSrc.isDirectory) {
             val git = GIT(kproject["__temp_git_${System.nanoTime()}"].also { it.mkdirs() })
             try {
                 git.downloadArchiveSubfolders(repo, path, rel)
                 val finalFolder = git.vfs[path]
+                outSrc.parentFile.mkdirs()
                 finalFolder.renameTo(outSrc)
+                println("finalFolder=$finalFolder -> outSrc=$outSrc")
             } finally {
                 git.vfs.deleteRecursively()
             }
@@ -141,12 +154,14 @@ data class KProject(
         println("resolve: $name -> $file")
         settings.include(":${name}")
         settings.project(":${name}").projectDir = file
-        for (dependency in dependencies) {
-            val dep = resolveDependency(dependency)
-            dep.resolve(settings)
-            println("dependency=$dependency")
-            println("dep=$dep")
-        }
+        val deps = dependencies.map { resolveDependency(it).also { it.resolve(settings) } }
+        File(file, "build.gradle").writeText(buildString {
+            appendLine("dependencies {")
+            for (dep in deps) {
+                appendLine("  add(\"commonMainApi\", project(\":${dep.name}\"))")
+            }
+            appendLine("}")
+        })
     }
 }
 

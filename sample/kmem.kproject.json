@@ -1,0 +1,6 @@
+{
+  "name": "kmem",
+  "type": "library",
+  "version": "3.2.0",
+  "src": "git::korlibs/korge::/kmem/src::v3.2.0"
+}

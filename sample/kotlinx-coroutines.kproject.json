@@ -1,0 +1,6 @@
+{
+  "name": "kotlinx-coroutines-core",
+  "type": "library",
+  "version": "1.6.4",
+  "src": "git::Kotlin/kotlinx.coroutines::/kotlinx-coroutines-core::1.6.4"
+}
