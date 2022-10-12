@@ -14,6 +14,7 @@ JSON-based source-based kotlin module descriptors
   src: "./src",
   dependencies: [
     "./libs/kds",
+    "git::adder::korlibs/kproject::/modules/adder::54f73b01cea9cb2e8368176ac45f2fca948e57db",
     "maven::common::org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4",
   ],
 }
