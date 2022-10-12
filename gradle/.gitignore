@@ -1,2 +1,3 @@
-./build.gradle.kts
-./*.settings.gradle.kts
+build.gradle*
+deps.gradle*
+*.settings.gradle.kts

@@ -117,6 +117,10 @@ class GIT(val vfs: java.io.File) {
 class KSet {
     val projectMap by lazy { LinkedHashMap<java.io.File, KProject>() }
     val kproject by lazy { getKProjectDir() }
+    val depTexts = arrayListOf<String>()
+    fun addDeps(text: String) {
+        depTexts.add(text)
+    }
     fun ensureGitSources(projectName: String, repo: String, path: String, rel: String, subfolder: String): java.io.File {
         val repo = ensureRepo(repo)
         val basePath = "modules/$repo/__checkouts__/${rel}/$projectName"
@@ -291,25 +295,28 @@ data class KProject(
         settings.project(":${name}").projectDir = file
         val deps = dependencies.map { resolveDependency(it).also { it.resolve(settings) } }
         val buildGradleText = buildString {
-            appendLine("// WARNING!! AUTO GENERATED, DO NOT MODIFY BY HAND!")
-            appendLine("dependencies {")
+            appendLine("configure([project(\":${name}\")]) {")
+            appendLine("  dependencies {")
             for (dep in deps) {
-                appendLine("  add(\"${dep.gradleSourceSet}\", ${dep.gradleRef})")
+                appendLine("    add(\"${dep.gradleSourceSet}\", ${dep.gradleRef})")
             }
+            appendLine("  }")
             appendLine("}")
         }
-        val buildGradleFile = java.io.File(file, "build.gradle")
-        if (buildGradleFile.takeIf { it.exists() }?.readText() != buildGradleText) {
-            buildGradleFile.writeText(buildGradleText)
-        }
+        this.settings.addDeps(buildGradleText)
+        //val buildGradleFile = java.io.File(file, "build.gradle")
+        //if (buildGradleFile.takeIf { it.exists() }?.readText() != buildGradleText) {
+        //    buildGradleFile.writeText(buildGradleText)
+        //}
     }
 }
 
 run {
     File(rootDir, "gradle/.gitignore").writeTextIfNew(
         """
-            ./build.gradle.kts
-            ./*.settings.gradle.kts
+            build.gradle*
+            deps.gradle*
+            *.settings.gradle.kts
         """.trimIndent()
     )
     File(rootDir, "gradle/build.gradle.kts").writeTextIfNew(
@@ -371,6 +378,11 @@ run {
                 }
             }
         }
+        
+        File(rootDir, "build.extra.gradle").takeIf { it.exists() }?.let { apply(from = it) }
+        File(rootDir, "build.extra.gradle.kts").takeIf { it.exists() }?.let { apply(from = it) }
+        File(rootDir, "gradle/deps.gradle").takeIf { it.exists() }?.let { apply(from = it) }
+        File(rootDir, "gradle/deps.gradle.kts").takeIf { it.exists() }?.let { apply(from = it) }
     """.trimIndent())
 }
 
@@ -459,6 +471,7 @@ fun main(settings: Settings) {
     val project = KProject.load(projectFile, kProj)
     project.resolve(settings)
 
+    File(settings.rootDir, "gradle/deps.gradle").writeText("// WARNING!! AUTO GENERATED, DO NOT MODIFY BY HAND!\n\n" + kProj.depTexts.joinToString("\n"))
     settings.project(":").buildFileName = "gradle/build.gradle.kts"
 }
 
