@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.*
 import com.fasterxml.jackson.module.kotlin.*
 import org.eclipse.jgit.api.*
 import org.eclipse.jgit.api.errors.*
+import org.eclipse.jgit.errors.MissingObjectException
 import org.eclipse.jgit.lib.*
 import org.gradle.kotlin.dsl.support.*
 import java.io.ByteArrayOutputStream
@@ -57,16 +58,20 @@ fun getCachedGitCheckout(
     val git = when {
         gitFolder.exists() -> Git.open(gitFolder)
         else -> {
-            println("Cloning $gitRepo...")
+            println("Cloning $gitRepo into $gitFolder...")
             Git.cloneRepository()
                 .setProgressMonitor(TextProgressMonitor(java.io.PrintWriter(System.out)))
                 .setURI(gitRepo)
-                .setDirectory(gitFolder).setBare(true).call()
+                .setDirectory(gitFolder)
+                //.setBare(true)
+                .call()
         }
     }
 
     if (!git.checkRefExists(rel)) {
         git.pull()
+            .setProgressMonitor(TextProgressMonitor(java.io.PrintWriter(System.out)))
+            .call()
     }
 
     if (!git.checkRefExists(rel)) {
@@ -417,12 +422,15 @@ fun Git.archiveZip(
 }
 
 fun Git.checkRefExists(rel: String): Boolean {
+    if (this.repository.findRef(rel) != null) return true
     //return this.repository.findRef(rel) != null
     ///*
     try {
 
         describe().setTarget(rel).call()
         return true
+    } catch (e: MissingObjectException) {
+        return false
     } catch (e: RefNotFoundException) {
         return false
     }

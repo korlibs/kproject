@@ -10,6 +10,6 @@
     "./libs/korio",
     //"./modules/demo",
     //"./modules/adder",
-    "git::adder::korlibs/kproject::/modules/adder::04625c0832255cc473a24faf75e82abbe61db56c",
+    "git::adder::korlibs/kproject::/modules/adder::54f73b01cea9cb2e8368176ac45f2fca948e57db",
   ],
 }
