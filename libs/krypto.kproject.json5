@@ -1,6 +1,6 @@
 {
-  "name": "krypto",
-  "type": "library",
-  "version": "3.2.0",
-  "src": "git::korlibs/korge::/krypto/src::v3.2.0"
+  name: "krypto",
+  type: "library",
+  version: "3.2.0",
+  src: "git::korlibs/korge::/krypto/src::v3.2.0",
 }
