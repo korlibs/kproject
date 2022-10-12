@@ -1,0 +1,9 @@
+{
+  name: "korge-spine",
+  type: "library",
+  version: "3.2.0",
+  src: "git::korlibs/korge::/korge-spine/src::v3.2.0",
+  dependencies: [
+    "maven::common::com.soywiz.korlibs.korge2:korge:3.2.0",
+  ],
+}

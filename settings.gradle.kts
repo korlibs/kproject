@@ -173,26 +173,6 @@ class KSource(
         }
     }
 }
-/*
-class KDependency(
-    val parts: List<String>,
-    val kproj: KSet
-) {
-    constructor(def: String, kproj: KSet) : this(def.split("::"), kproj)
-
-    fun resolveDir(): File {
-        return when (parts.first()) {
-            "git" -> {
-                val (_, repo, path, version) = parts
-
-                File(kproj.kproject, "modules/korge-dragonbones/v3.2.0")
-            }
-            else ->  TODO()
-        }
-    }
-}
-
- */
 
 interface KDependency {
     val gradleSourceSet: String
