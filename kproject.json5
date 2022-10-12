@@ -9,5 +9,6 @@
     // { "korlibs/korge:korge-dragonbones": "3.2.0" },
     "./libs/korio",
     "./modules/demo",
+    "./modules/adder"
   ],
 }
