@@ -39,9 +39,10 @@ and compile to any supported platform on the fly.
 Just put this code in your `settings.gradle.kts`:
 
 ```kotlin
-val localFile = file("gradle/467c1d713566ac0e4bbc26b319a81f2321f101bc.settings.gradle.kts")
+val kprojectVersion = "467c1d713566ac0e4bbc26b319a81f2321f101bc"
+val localFile = file("gradle/$kprojectVersion.settings.gradle.kts")
 if (!localFile.exists()) {
-    localFile.writeBytes(java.net.URL("https://raw.githubusercontent.com/korlibs/kproject/467c1d713566ac0e4bbc26b319a81f2321f101bc/settings.gradle.kts").readBytes())
+    localFile.writeBytes(java.net.URL("https://raw.githubusercontent.com/korlibs/kproject/$kprojectVersion/settings.gradle.kts").readBytes())
 }
 apply(from = localFile)
 
