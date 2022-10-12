@@ -8,7 +8,8 @@
     // "git::korlibs/korge::/korge-dragonbones::v3.2.0",
     // { "korlibs/korge:korge-dragonbones": "3.2.0" },
     "./libs/korio",
-    "./modules/demo",
-    "./modules/adder"
+    //"./modules/demo",
+    //"./modules/adder",
+    "git::adder::korlibs/kproject::/modules/adder::04625c0832255cc473a24faf75e82abbe61db56c",
   ],
 }

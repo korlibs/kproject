@@ -1,7 +1,14 @@
-import com.fasterxml.jackson.databind.*
-import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.annotation.*
+import com.fasterxml.jackson.core.*
+import com.fasterxml.jackson.databind.*
 import com.fasterxml.jackson.module.kotlin.*
+import org.eclipse.jgit.api.*
+import org.eclipse.jgit.api.errors.*
+import org.eclipse.jgit.lib.*
+import org.gradle.kotlin.dsl.support.*
+import java.io.ByteArrayOutputStream
+import java.io.OutputStream
+import java.util.zip.*
 
 buildscript {
     repositories {
@@ -11,6 +18,7 @@ buildscript {
     }
     dependencies {
         //classpath("com.soywiz.korlibs.korio:korio-jvm:3.2.0")
+        classpath("org.eclipse.jgit:org.eclipse.jgit:6.3.0.202209071007-r")
         classpath("com.fasterxml.jackson.core:jackson-databind:2.13.4")
         classpath("com.fasterxml.jackson.module:jackson-module-kotlin:2.13.2")
     }
@@ -18,6 +26,70 @@ buildscript {
 
 rootProject.name = "kproject"
 
+fun normalizePath(path: String): String = File(path).normalize().toString()
+fun ensureRepo(repo: String): String = normalizePath(repo).also { if (it.count { it == '/' } != 1) error("Invalid repo '$repo'") }
+fun getKProjectDir(): File = java.io.File("${System.getProperty("user.home")}/.kproject").also { it.mkdirs() }
+operator fun java.io.File.get(path: String): java.io.File = java.io.File(this, path)
+fun java.io.File.execToString(vararg params: String, throwOnError: Boolean = true): String {
+    val result = java.lang.Runtime.getRuntime().exec(params, kotlin.arrayOf(), this)
+    val stdout = result.inputStream.readBytes().toString(Charsets.UTF_8)
+    val stderr = result.errorStream.readBytes().toString(Charsets.UTF_8)
+    if (result.exitValue() != 0 && throwOnError) error("$stdout$stderr")
+    return stdout + stderr
+}
+
+fun getCachedGitCheckout(
+    projectName: String,
+    repo: String,
+    projectPath: String,
+    rel: String,
+    subfolder: String = ""
+): File {
+    val VERSION = 2
+    val repo = ensureRepo(repo)
+    val gitRepo = "https://github.com/$repo.git"
+    val kprojectRoot = getKProjectDir()
+    val gitFolder = File(kprojectRoot, "modules/$repo/__git__")
+
+    val outputCheckoutDir = File(kprojectRoot, "modules/$repo/__checkouts__/$rel/$projectName")
+    if (outputCheckoutDir[".gitarchive"].takeIf { it.exists() }?.readText() == "$VERSION") return outputCheckoutDir
+
+    val git = when {
+        gitFolder.exists() -> Git.open(gitFolder)
+        else -> {
+            println("Cloning $gitRepo...")
+            Git.cloneRepository()
+                .setProgressMonitor(TextProgressMonitor(java.io.PrintWriter(System.out)))
+                .setURI(gitRepo)
+                .setDirectory(gitFolder).setBare(true).call()
+        }
+    }
+
+    if (!git.checkRefExists(rel)) {
+        git.pull()
+    }
+
+    if (!git.checkRefExists(rel)) {
+        error("Can't find '$rel' in git repo")
+    }
+
+    //val localZipFile = File.createTempFile("kproject", ".zip")
+    val localZipFile = File(outputCheckoutDir.parentFile, outputCheckoutDir.name + ".zip")
+
+    try {
+        println("Getting archive for '$projectName':$rel at $gitRepo :: $projectPath...")
+
+        localZipFile.writeBytes(git.archiveZip(path = projectPath, rel = rel))
+        unzipTo(File(outputCheckoutDir, subfolder), localZipFile)
+        outputCheckoutDir[".gitarchive"].writeText("$VERSION")
+    } finally {
+        localZipFile.delete()
+    }
+
+    return outputCheckoutDir
+}
+
+/*
 class GIT(val vfs: java.io.File) {
     companion object {
         fun ensureGitRepo(repo: String): String = when {
@@ -35,46 +107,44 @@ class GIT(val vfs: java.io.File) {
         vfs.delete()
     }
 }
+*/
 
 class KSet {
     val projectMap by lazy { LinkedHashMap<java.io.File, KProject>() }
-    val kproject by lazy { java.io.File("${System.getProperty("user.home")}/.kproject").also { it.mkdirs() } }
-    fun ensureGitSources(projectName: String, repo: String, path: String, rel: String): java.io.File {
-        val basePath = "modules/$projectName/${rel}"
+    val kproject by lazy { getKProjectDir() }
+    fun ensureGitSources(projectName: String, repo: String, path: String, rel: String, subfolder: String): java.io.File {
+        val repo = ensureRepo(repo)
+        val basePath = "modules/$repo/__checkouts__/${rel}/$projectName"
         val folder = kproject[basePath].also { it.mkdirs() }
-        val outSrc = folder["src"]
         val paramsFile = folder[".params"]
         val paramsStr = "$projectName::$repo::$path::$rel"
 
         if (paramsFile.takeIf { it.exists() }?.readText() != paramsStr) {
             //println("*******************")
-            outSrc.deleteRecursively()
+            folder.deleteRecursively()
             paramsFile.parentFile.mkdirs()
             paramsFile.writeText(paramsStr)
         }
         //println("---------------")
 
-        if (!outSrc.isDirectory) {
-            val git = GIT(kproject["__temp_git_${System.nanoTime()}"].also { it.mkdirs() })
-            try {
-                git.downloadArchiveSubfolders(repo, path, rel)
-                val finalFolder = git.vfs[path]
-                outSrc.parentFile.mkdirs()
-                finalFolder.renameTo(outSrc)
-                println("finalFolder=$finalFolder -> outSrc=$outSrc")
-            } finally {
-                git.vfs.deleteRecursively()
-            }
-        }
-        return folder
+        return getCachedGitCheckout(projectName, repo, path, rel, subfolder)
+
+        //if (!outSrc.isDirectory) {
+        //    val git = GIT(kproject["__temp_git_${System.nanoTime()}"].also { it.mkdirs() })
+        //    try {
+        //        git.downloadArchiveSubfolders(repo, path, rel)
+        //        val finalFolder = git.vfs[path]
+        //        outSrc.parentFile.mkdirs()
+        //        if (!finalFolder.exists()) error("$finalFolder doesn't exists")
+        //        finalFolder.renameTo(outSrc)
+        //        println("finalFolder=$finalFolder -> outSrc=$outSrc")
+        //    } finally {
+        //        //git.vfs.deleteRecursively()
+        //    }
+        //}
+        //return folder
     }
 }
-
-fun java.io.File.execToString(vararg params: String): String {
-    return java.lang.Runtime.getRuntime().exec(params, kotlin.arrayOf(), this).inputStream.readBytes().toString(Charsets.UTF_8)
-}
-
-operator fun java.io.File.get(path: String): java.io.File = java.io.File(this, path)
 
 class KSource(
     val project: KProject,
@@ -88,7 +158,7 @@ class KSource(
             "git" -> {
                 val (_, repo, path, version) = parts
                 //File(kProj.kproject, "modules/korge-dragonbones/v3.2.0")
-                project.settings.ensureGitSources(project.name, repo, path, version)
+                project.settings.ensureGitSources(project.name, repo, path, version, "src")
             }
             "bundled" -> {
                 //parts.last()
@@ -146,6 +216,18 @@ data class KGradleDependency(
     }
 }
 
+object JSON5 {
+    val mapper: ObjectMapper = jacksonObjectMapper()
+        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+        .configure(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true)
+        .configure(JsonParser.Feature.ALLOW_TRAILING_COMMA, true)
+        .configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, true)
+        .configure(JsonParser.Feature.ALLOW_BACKSLASH_ESCAPING_ANY_CHARACTER, true)
+        .configure(JsonParser.Feature.ALLOW_NON_NUMERIC_NUMBERS, true)
+        .configure(JsonParser.Feature.ALLOW_COMMENTS, true)
+        .configure(JsonParser.Feature.ALLOW_LEADING_DECIMAL_POINT_FOR_NUMBERS, true)
+}
+
 data class KProject(
     val name: String,
     val version: String = "unknown",
@@ -159,19 +241,9 @@ data class KProject(
     val projectDir: java.io.File get() = file.parentFile
 
     companion object {
-        private val mapper = jacksonObjectMapper()
-            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-            .configure(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true)
-            .configure(JsonParser.Feature.ALLOW_TRAILING_COMMA, true)
-            .configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, true)
-            .configure(JsonParser.Feature.ALLOW_BACKSLASH_ESCAPING_ANY_CHARACTER, true)
-            .configure(JsonParser.Feature.ALLOW_NON_NUMERIC_NUMBERS, true)
-            .configure(JsonParser.Feature.ALLOW_COMMENTS, true)
-            .configure(JsonParser.Feature.ALLOW_LEADING_DECIMAL_POINT_FOR_NUMBERS, true)
-
         fun load(file: java.io.File, settings: KSet): KProject {
             return settings.projectMap.getOrPut(file.canonicalFile) {
-                mapper.readValue<KProject>(file.readText()).also {
+                JSON5.mapper.readValue<KProject>(file.readText()).also {
                     it.file = file.canonicalFile
                     it.settings = settings
                 }
@@ -184,6 +256,11 @@ data class KProject(
         return when (info.first()) {
             "maven" -> {
                 KGradleDependency(info[1], info.last())
+            }
+            "git" -> {
+                val (_, name, repo, path, rel) = info
+                val file = settings.ensureGitSources(name, repo, path, rel, "")
+                load(File(file, "kproject.json5"), settings)
             }
             else -> {
                 if (!path.startsWith(".")) error("dependency '$path' unrecognised")
@@ -298,9 +375,65 @@ fun File.writeTextIfNew(text: String) {
     }
 }
 
-val projectFile = File(rootDir, "kproject.json5")
-if (!projectFile.exists()) {
-    projectFile.writeText("""
+fun Git.archiveZip(
+    path: String,
+    rel: String,
+): ByteArray {
+    class ExtZipOutputStream(out: OutputStream, val params: Map<String?, Any?>?) : ZipOutputStream(out) {
+        var removePrefix: String? = params?.getOrElse("removePrefix") { null }?.toString()
+    }
+
+    class ZipArchiveFormat : ArchiveCommand.Format<ExtZipOutputStream> {
+        override fun suffixes(): Iterable<String> = setOf(".mzip")
+        override fun createArchiveOutputStream(s: OutputStream): ExtZipOutputStream = createArchiveOutputStream(s, null)
+        override fun createArchiveOutputStream(s: OutputStream, o: Map<String?, Any?>?): ExtZipOutputStream = ExtZipOutputStream(s, o).also { it.setLevel(1) }
+        override fun putEntry(out: ExtZipOutputStream, tree: ObjectId, path: String, mode: FileMode, loader: ObjectLoader?) {
+            //println("ZIP: $path -- ${loader?.bytes?.size}")
+            if (loader == null) return
+            // loader is null for directories...
+            val entry = java.util.zip.ZipEntry(path.trim('/').removePrefix(out.removePrefix?.trim('/') ?: "").trim('/'))
+            out.putNextEntry(entry)
+            out.write(loader.bytes)
+            out.closeEntry()
+        }
+    }
+
+    kotlin.runCatching { ArchiveCommand.unregisterFormat("mzip") }
+    ArchiveCommand.registerFormat("mzip", ZipArchiveFormat());
+    try {
+        val mem = ByteArrayOutputStream()
+        this.archive()
+            .setTree(this.repository.resolve(rel))
+            .setPaths(path, path.trim('/'))
+            .setFilename("archive.mzip")
+            .setFormat("mzip")
+            .setFormatOptions(mapOf("removePrefix" to "$path/"))
+            .setOutputStream(mem)
+            .call()
+        return mem.toByteArray()
+    } finally {
+        ArchiveCommand.unregisterFormat("mzip")
+    }
+}
+
+fun Git.checkRefExists(rel: String): Boolean {
+    //return this.repository.findRef(rel) != null
+    ///*
+    try {
+
+        describe().setTarget(rel).call()
+        return true
+    } catch (e: RefNotFoundException) {
+        return false
+    }
+
+     //*/
+}
+
+fun main(settings: Settings) {
+    val projectFile = File(rootDir, "kproject.json5")
+    if (!projectFile.exists()) {
+        projectFile.writeText("""
         {
             // Name of the project
             name: "untitled",
@@ -313,9 +446,21 @@ if (!projectFile.exists()) {
             ],
         }
     """.trimIndent())
-}
-val kProj = KSet()
-val project = KProject.load(projectFile, kProj)
-project.resolve(settings)
+    }
+    val kProj = KSet()
+    val project = KProject.load(projectFile, kProj)
+    project.resolve(settings)
 
-project(":").buildFileName = "gradle/build.gradle.kts"
+    settings.project(":").buildFileName = "gradle/build.gradle.kts"
+}
+
+
+main(settings)
+
+
+//getCachedGitCheckout("adder", "korlibs/kproject", "modules/adder", "04625c0832255cc473a24faf75e82abbe61db56c")
+
+//git.checkout().setName("614ebf68ce00abe6e23c5cfb3d31c601c3e75ed2").call()
+
+// [Ref[refs/heads/main=04625c0832255cc473a24faf75e82abbe61db56c(-1)]]
+//println(git.branchList().call())
