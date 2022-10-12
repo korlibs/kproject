@@ -1,6 +1,5 @@
-import com.soywiz.klock.*
-import com.soywiz.korlibs.*
+import com.soywiz.korge.*
 
-fun main() {
-    println(Adder.add(1, 2).milliseconds)
+suspend fun main() = Korge {
+    //println(Adder.add(1, 2).milliseconds)
 }

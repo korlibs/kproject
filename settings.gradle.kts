@@ -337,11 +337,25 @@ run {
             apply(plugin = "kotlin-multiplatform")
 
             kotlin {
-                jvm {
-                    withJava()
+                metadata {
+                    compilations.all {
+                        kotlinOptions.suppressWarnings = true
+                    }
                 }
-                js {
-                    browser()
+                jvm {
+                    compilations.all {
+                        kotlinOptions.jvmTarget = "1.8"
+                        kotlinOptions.suppressWarnings = true
+                        kotlinOptions.freeCompilerArgs = listOf("-Xno-param-assertions")
+                    }
+                }
+                js(org.jetbrains.kotlin.gradle.plugin.KotlinJsCompilerType.IR) {
+                    browser {
+                        compilations.all {
+                            //kotlinOptions.sourceMap = true
+                            kotlinOptions.suppressWarnings = true
+                        }
+                    }
                 }
                 for (target in listOf("common", "jvm", "js")) {
                     sourceSets[target + "Main"].kotlin.srcDir(file("src/" + target + "/src"))
@@ -480,7 +494,7 @@ fun main(settings: Settings) {
         ij_kotlin_blank_lines_before_declaration_with_comment_or_annotation_on_separate_line = 0
         ij_kotlin_variable_annotation_wrap = off
     
-        [*.json]
+        [*.json,*.json5]
         indent_size=2
     
         [*.yml]
