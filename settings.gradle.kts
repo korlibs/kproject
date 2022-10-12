@@ -224,6 +224,12 @@ data class KProject(
 }
 
 run {
+    File(rootDir, "gradle/.gitignore").writeTextIfNew(
+        """
+            ./build.gradle.kts
+            ./*.settings.gradle.kts
+        """.trimIndent()
+    )
     File(rootDir, "gradle/build.gradle.kts").writeTextIfNew(
         // language: Kotlin
         """
@@ -296,7 +302,15 @@ val projectFile = File(rootDir, "kproject.json5")
 if (!projectFile.exists()) {
     projectFile.writeText("""
         {
+            // Name of the project
             name: "untitled",
+            version: "unknown",
+            // Dependency list, to other kproject.json5 modules or maven
+            // Examples: 
+            // - "./libs/krypto",
+            // - "maven::common::org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4"
+            dependencies: [
+            ],
         }
     """.trimIndent())
 }

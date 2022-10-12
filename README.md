@@ -1,4 +1,4 @@
-# kproject
+# kproject - Liberate your Kotlin projects
 
 JSON-based source-based kotlin module descriptors
 
@@ -19,6 +19,10 @@ JSON-based source-based kotlin module descriptors
 }
 ```
 
+## Create kprojects from existing GitHub repositories
+
+Projects can contain `src` folders that are subfolders in git repositories:
+
 ### `libs/kds.kproject.json5`
 
 ```
@@ -36,6 +40,8 @@ With a single `settings.gradle.kts` and `kproject.json5`
 files you can reference any version and any project hosted at github or maven repositories
 and compile to any supported platform on the fly.
 
+## Super simple to use:
+
 Just put this code in your `settings.gradle.kts`:
 
 ```kotlin
@@ -49,4 +55,4 @@ apply(from = localFile)
 rootProject.name = "your-project-name"
 ```
 
-Run gradle without tasks, and start editing your `kproject.json5` file.
+Run gradle without tasks, and start editing your automatically-generated `kproject.json5` file.
