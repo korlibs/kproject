@@ -226,7 +226,11 @@ data class KProject(
 
 val projectFile = File(rootDir, "kproject.json5")
 if (!projectFile.exists()) {
-    projectFile.writeText("{\"name\": \"${projectFile.parentFile.name}\"}")
+    projectFile.writeText("""
+        {
+            name: "untitled",
+        }
+    """.trimIndent())
 }
 val kProj = KSet()
 val project = KProject.load(projectFile, kProj)

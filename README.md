@@ -35,3 +35,17 @@ JSON-based source-based kotlin module descriptors
 With a single `settings.gradle.kts` and `kproject.json5`
 files you can reference any version and any project hosted at github or maven repositories
 and compile to any supported platform on the fly.
+
+Just put this code in your `settings.gradle.kts`:
+
+```kotlin
+val localFile = file("gradle/467c1d713566ac0e4bbc26b319a81f2321f101bc.settings.gradle.kts")
+if (!localFile.exists()) {
+    localFile.writeBytes(java.net.URL("https://raw.githubusercontent.com/korlibs/kproject/467c1d713566ac0e4bbc26b319a81f2321f101bc/settings.gradle.kts").readBytes())
+}
+apply(from = localFile)
+
+rootProject.name = "your-project-name"
+```
+
+Run gradle without tasks, and start editing your `kproject.json5` file.
