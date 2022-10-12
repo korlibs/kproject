@@ -47,11 +47,9 @@ Just put this code in your `settings.gradle.kts`:
 
 ```kotlin
 val kprojectVersion = "54f73b01cea9cb2e8368176ac45f2fca948e57db"
-val localFile = file("gradle/$kprojectVersion.settings.gradle.kts")
-if (!localFile.exists()) {
-    localFile.writeBytes(java.net.URL("https://raw.githubusercontent.com/korlibs/kproject/$kprojectVersion/settings.gradle.kts").readBytes())
-}
-apply(from = localFile)
+apply(from = file("gradle/$kprojectVersion.settings.gradle.kts").also {
+    if (!it.exists()) it.writeBytes(java.net.URL("https://raw.githubusercontent.com/korlibs/kproject/$kprojectVersion/settings.gradle.kts").readBytes())
+})
 
 rootProject.name = "your-project-name"
 ```
