@@ -208,13 +208,18 @@ data class KProject(
         settings.include(":${name}")
         settings.project(":${name}").projectDir = file
         val deps = dependencies.map { resolveDependency(it).also { it.resolve(settings) } }
-        java.io.File(file, "build.gradle").writeText(buildString {
+        val buildGradleText = buildString {
+            appendLine("// WARNING!! AUTO GENERATED, DO NOT MODIFY BY HAND!")
             appendLine("dependencies {")
             for (dep in deps) {
                 appendLine("  add(\"${dep.gradleSourceSet}\", ${dep.gradleRef})")
             }
             appendLine("}")
-        })
+        }
+        val buildGradleFile = java.io.File(file, "build.gradle")
+        if (buildGradleFile.takeIf { it.exists() }?.readText() != buildGradleText) {
+            buildGradleFile.writeText(buildGradleText)
+        }
     }
 }
 

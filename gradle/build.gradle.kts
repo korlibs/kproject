@@ -45,7 +45,8 @@ allprojects {
                 "kotlinx.coroutines.ExperimentalCoroutinesApi",
                 "kotlinx.coroutines.ObsoleteCoroutinesApi",
                 "kotlinx.coroutines.InternalCoroutinesApi",
-                "kotlinx.coroutines.FlowPreview")
+                "kotlinx.coroutines.FlowPreview"
+            )
 
             sourceSet.languageSettings {
                 optInAnnotations.forEach { optIn(it) }
