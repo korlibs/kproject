@@ -451,22 +451,48 @@ fun Git.checkRefExists(rel: String): Boolean {
 }
 
 fun main(settings: Settings) {
-    val projectFile = File(rootDir, "kproject.json5")
-    if (!projectFile.exists()) {
-        projectFile.writeText("""
-        {
-            // Name of the project
-            name: "untitled",
-            version: "unknown",
-            // Dependency list, to other kproject.json5 modules or maven
-            // Examples: 
-            // - "./libs/krypto",
-            // - "maven::common::org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4"
-            dependencies: [
-            ],
-        }
-    """.trimIndent())
+    val projectFile = File(rootDir, "kproject.json5").also {
+        if (!it.exists()) it.writeText(
+            """
+                {
+                    // Name of the project
+                    name: "untitled",
+                    version: "unknown",
+                    // Dependency list, to other kproject.json5 modules or maven
+                    // Examples: 
+                    // - "./libs/krypto",
+                    // - "maven::common::org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4"
+                    dependencies: [
+                    ],
+                }
+            """.trimIndent()
+        )
     }
+
+    File(rootDir, ".editorconfig").takeIf { !it.exists() }?.writeText("""
+        [*]
+        charset=utf-8
+        end_of_line=lf
+        insert_final_newline=true
+        indent_style=space
+        indent_size=4
+        ij_kotlin_name_count_to_use_star_import = 1
+        ij_kotlin_blank_lines_before_declaration_with_comment_or_annotation_on_separate_line = 0
+        ij_kotlin_variable_annotation_wrap = off
+    
+        [*.json]
+        indent_size=2
+    
+        [*.yml]
+        indent_size = 2
+    """.trimIndent())
+
+    File(rootDir, ".gitignore").takeIf { !it.exists() }?.writeText("""
+        /.idea
+        /.gradle
+        /build
+    """.trimIndent())
+
     val kProj = KSet()
     val project = KProject.load(projectFile, kProj)
     project.resolve(settings)
