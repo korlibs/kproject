@@ -7,6 +7,7 @@ import org.eclipse.jgit.api.errors.*
 import org.eclipse.jgit.errors.MissingObjectException
 import org.eclipse.jgit.lib.*
 import org.gradle.kotlin.dsl.support.*
+import org.intellij.lang.annotations.Language
 import java.io.ByteArrayOutputStream
 import java.io.OutputStream
 import java.util.zip.*
@@ -29,10 +30,10 @@ rootProject.name = "kproject"
 
 fun normalizePath(path: String): String = File(path).normalize().toString()
 fun ensureRepo(repo: String): String = normalizePath(repo).also { if (it.count { it == '/' } != 1) error("Invalid repo '$repo'") }
-fun getKProjectDir(): File = java.io.File("${System.getProperty("user.home")}/.kproject").also { it.mkdirs() }
-operator fun java.io.File.get(path: String): java.io.File = java.io.File(this, path)
-fun java.io.File.execToString(vararg params: String, throwOnError: Boolean = true): String {
-    val result = java.lang.Runtime.getRuntime().exec(params, kotlin.arrayOf(), this)
+fun getKProjectDir(): File = File("${System.getProperty("user.home")}/.kproject").also { it.mkdirs() }
+operator fun File.get(path: String): File = File(this, path)
+fun File.execToString(vararg params: String, throwOnError: Boolean = true): String {
+    val result = Runtime.getRuntime().exec(params, arrayOf(), this)
     val stdout = result.inputStream.readBytes().toString(Charsets.UTF_8)
     val stderr = result.errorStream.readBytes().toString(Charsets.UTF_8)
     if (result.exitValue() != 0 && throwOnError) error("$stdout$stderr")
@@ -115,13 +116,13 @@ class GIT(val vfs: java.io.File) {
 */
 
 class KSet {
-    val projectMap by lazy { LinkedHashMap<java.io.File, KProject>() }
+    val projectMap by lazy { LinkedHashMap<File, KProject>() }
     val kproject by lazy { getKProjectDir() }
     val depTexts = arrayListOf<String>()
     fun addDeps(text: String) {
         depTexts.add(text)
     }
-    fun ensureGitSources(projectName: String, repo: String, path: String, rel: String, subfolder: String): java.io.File {
+    fun ensureGitSources(projectName: String, repo: String, path: String, rel: String, subfolder: String): File {
         val repo = ensureRepo(repo)
         val basePath = "modules/$repo/__checkouts__/${rel}/$projectName"
         val folder = kproject[basePath].also { it.mkdirs() }
@@ -137,21 +138,6 @@ class KSet {
         //println("---------------")
 
         return getCachedGitCheckout(projectName, repo, path, rel, subfolder)
-
-        //if (!outSrc.isDirectory) {
-        //    val git = GIT(kproject["__temp_git_${System.nanoTime()}"].also { it.mkdirs() })
-        //    try {
-        //        git.downloadArchiveSubfolders(repo, path, rel)
-        //        val finalFolder = git.vfs[path]
-        //        outSrc.parentFile.mkdirs()
-        //        if (!finalFolder.exists()) error("$finalFolder doesn't exists")
-        //        finalFolder.renameTo(outSrc)
-        //        println("finalFolder=$finalFolder -> outSrc=$outSrc")
-        //    } finally {
-        //        //git.vfs.deleteRecursively()
-        //    }
-        //}
-        //return folder
     }
 }
 
@@ -162,7 +148,7 @@ class KSource(
     val def = parts.joinToString("::")
     constructor(project: KProject, def: String) : this(project, def.split("::"))
 
-    fun resolveDir(): java.io.File {
+    fun resolveDir(): File {
         return when (parts.first()) {
             "git" -> {
                 val (_, repo, path, version) = parts
@@ -182,7 +168,7 @@ class KSource(
                 //project.file.parentFile[def].absoluteFile
                 //println("this.project.projectDir=${this.project.projectDir}, ${this.project.file}")
                 //println("def=${def}")
-                java.io.File(this.project.projectDir, def).canonicalFile
+                File(this.project.projectDir, def).canonicalFile
             }
         }
     }
@@ -244,14 +230,14 @@ data class KProject(
     val src: String? = null,
     val dependencies: List<String> = emptyList()
 ) : KDependency {
-    @JsonIgnore lateinit var file: java.io.File
+    @JsonIgnore lateinit var file: File
     @JsonIgnore lateinit var settings: KSet
     @JsonIgnore var root: Boolean = false
 
-    val projectDir: java.io.File get() = file.parentFile
+    val projectDir: File get() = file.parentFile
 
     companion object {
-        fun load(file: java.io.File, settings: KSet, root: Boolean): KProject {
+        fun load(file: File, settings: KSet, root: Boolean): KProject {
             return settings.projectMap.getOrPut(file.canonicalFile) {
                 JSON5.mapper.readValue<KProject>(file.readText()).also {
                     it.root = root
@@ -275,15 +261,15 @@ data class KProject(
             }
             else -> {
                 if (!path.startsWith(".")) error("dependency '$path' unrecognised")
-                val file1 = java.io.File(file.parentFile, "$path.kproject.json5")
-                val file2 = java.io.File(file.parentFile, "$path/kproject.json5")
+                val file1 = File(file.parentFile, "$path.kproject.json5")
+                val file2 = File(file.parentFile, "$path/kproject.json5")
                 load(listOf(file1, file2).firstOrNull { it.exists() } ?: error("Can't find suitable kproject.json5: $file1, $file2"), settings, false)
             }
         }
     }
 
-    fun resolveSource(): java.io.File {
-        val src = src ?: "./src"
+    fun resolveSource(): File {
+        val src = src ?: "./${name}"
         return KSource(this, src).resolveDir()
     }
 
@@ -338,7 +324,7 @@ fun Git.archiveZip(
             //println("ZIP: $path -- ${loader?.bytes?.size}")
             if (loader == null) return
             // loader is null for directories...
-            val entry = java.util.zip.ZipEntry(path.trim('/').removePrefix(out.removePrefix?.trim('/') ?: "").trim('/'))
+            val entry = ZipEntry(path.trim('/').removePrefix(out.removePrefix?.trim('/') ?: "").trim('/'))
             out.putNextEntry(entry)
             out.write(loader.bytes)
             out.closeEntry()
@@ -346,7 +332,7 @@ fun Git.archiveZip(
     }
 
     kotlin.runCatching { ArchiveCommand.unregisterFormat("mzip") }
-    ArchiveCommand.registerFormat("mzip", ZipArchiveFormat());
+    ArchiveCommand.registerFormat("mzip", ZipArchiveFormat())
     try {
         val mem = ByteArrayOutputStream()
         this.archive()
@@ -365,19 +351,14 @@ fun Git.archiveZip(
 
 fun Git.checkRefExists(rel: String): Boolean {
     if (this.repository.findRef(rel) != null) return true
-    //return this.repository.findRef(rel) != null
-    ///*
-    try {
-
+    return try {
         describe().setTarget(rel).call()
-        return true
+        true
     } catch (e: MissingObjectException) {
-        return false
+        false
     } catch (e: RefNotFoundException) {
-        return false
+        false
     }
-
-     //*/
 }
 
 val projectFile = File(rootDir, "kproject.json5").also {
@@ -406,10 +387,14 @@ File(rootDir, "gradle/.gitignore").writeTextIfNew(
 """.trimIndent()
 )
 
+fun kotlinSource(@Language("kotlin") source: String): String {
+    return source
+}
+
 val rootBuildGradleKtsFile = File(rootDir, "gradle/build.gradle.kts")
 //val rootBuildGradleKtsFile = File(rootDir, "build.gradle.kts")
-rootBuildGradleKtsFile.writeTextIfNew(
-// language: Kotlin
+rootBuildGradleKtsFile.writeTextIfNew(kotlinSource(
+//language=kotlin
 """
     // AUTOGENERATED: DO NOT MODIFY
     plugins {
@@ -448,34 +433,19 @@ rootBuildGradleKtsFile.writeTextIfNew(
                     }
                 }
             }
-            /*
-            for (target in listOf("common", "jvm", "js")) {
-                sourceSets.maybeCreate(target + "Main").kotlin.srcDir(file("src/" + target + "/src"))
-                sourceSets.maybeCreate(target + "Main").resources.srcDir(file("src/" + target + "/resources"))
-            }
-            sourceSets.maybeCreate("concurrentMain").apply {
-                kotlin.srcDir(file("src/concurrentMain/kotlin"))
-                kotlin.srcDir(file("src/concurrent/src"))
-            }
-            sourceSets["jvmMain"].apply {
-                kotlin.srcDir(file("src/jvmAndroidMain/kotlin"))
-                resources.srcDir(file("src/jvmAndroidMain/resources"))
-            }
-
-            sourceSets["concurrentMain"].dependsOn(sourceSets["commonMain"])
-            sourceSets["jvmMain"].dependsOn(sourceSets["concurrentMain"])
-            */
             
             sourceSets {
-                val commonMain by getting {
-                    dependencies {
-                        //api("com.soywiz.korlibs.korge2:korge:3.2.0")
-                    }
-                }
+                val commonMain by getting {}
+                val commonTest by getting {}
+                val concurrentMain by creating { dependsOn(commonMain) }
+                val concurrentTest by creating { dependsOn(commonTest) }
                 //val nativeMain by getting
                 //val nativeTest by getting
-                val jvmMain by getting
+                val jvmAndroidMain by creating { dependsOn(concurrentMain) }
+                val jvmAndroidTest by creating { dependsOn(concurrentTest) }
+                val jvmMain by getting { dependsOn(jvmAndroidMain) }
                 val jvmTest by getting {
+                    dependsOn(jvmAndroidTest)
                     dependencies {
                         implementation(kotlin("test"))
                     }
@@ -511,7 +481,7 @@ rootBuildGradleKtsFile.writeTextIfNew(
     File(rootDir, "build.extra.gradle.kts").takeIf { it.exists() }?.let { apply(from = it) }
     File(rootDir, "gradle/deps.gradle").takeIf { it.exists() }?.let { apply(from = it) }
     File(rootDir, "gradle/deps.gradle.kts").takeIf { it.exists() }?.let { apply(from = it) }
-""".trimIndent())
+""".trimIndent()))
 
 File(rootDir, ".editorconfig").takeIf { !it.exists() }?.writeText("""
     [*]
@@ -542,5 +512,6 @@ KSet().also { kProj ->
 
     File(settings.rootDir, "gradle/deps.gradle").writeText("// WARNING!! AUTO GENERATED, DO NOT MODIFY BY HAND!\n\n" + kProj.depTexts.joinToString("\n"))
 //settings.project(":").buildFileName = "gradle/build.gradle.kts"
+    //settings.project(":").projectDir = File(settings.rootDir, "gradle/root")
     settings.project(":").buildFileName = rootBuildGradleKtsFile.relativeTo(rootDir).toString()
 }
