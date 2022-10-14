@@ -126,7 +126,7 @@ data class KProject(
             }
             "git" -> {
                 val (_, name, repo, path, rel) = info
-                val file = settings.ensureGitSources(name, repo, path, rel, "")
+                val file = settings.ensureGitSources(name, repo, path, rel, "", settings.settings.rootDir["modules"])
                 load(File(file, "kproject.yml"), settings, false)
             }
             else -> {
