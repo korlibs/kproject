@@ -1,5 +1,6 @@
 package com.soywiz.kproject
 
+import com.soywiz.kproject.util.*
 import org.gradle.api.*
 import org.gradle.api.plugins.*
 import org.gradle.kotlin.dsl.*
@@ -10,6 +11,7 @@ import org.jetbrains.kotlin.gradle.plugin.mpp.*
 @Suppress("unused")
 class KProjectPlugin : Plugin<Project> {
     override fun apply(project: Project) {
+        project.defineStandardRepositories()
 
         project.plugins.applyOnce("kotlin-multiplatform")
         //project.repositories()
