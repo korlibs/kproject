@@ -26,7 +26,7 @@ repositories {
     maven { url = uri("https://plugins.gradle.org/m2/") }
 }
 
-String forcedVersion = System.getenv('FORCED_KORGE_PLUGINS_VERSION')
+String forcedVersion = System.getenv('FORCED_VERSION')
 
 if (forcedVersion != null) {
     allprojects {
@@ -68,9 +68,9 @@ dependencies {
 
 
 pluginBundle {
-    website = "https://github.com/korlibs/easy-kotlin-mpp-gradle-plugin"
-    vcsUrl = "https://github.com/korlibs/easy-kotlin-mpp-gradle-plugin"
-    tags = ["korlibs", "kotlin", "kotlin-mpp"]
+    website = "https://github.com/korlibs/kproject"
+    vcsUrl = "https://github.com/korlibs/kproject"
+    tags = ["kproject", "git"]
 }
 
 gradlePlugin {
@@ -104,12 +104,12 @@ if (sonatypePublishUser == null || sonatypePublishPassword == null) {
 }
 
 task sourcesJar(type: Jar) {
-    archiveClassifier.set('sources')
+    archiveClassifier.set("sources")
     from sourceSets.main.allSource
 }
 
 task javadocJar(type: Jar) {
-    archiveClassifier.set('javadoc')
+    archiveClassifier.set("javadoc")
 }
 
 publishing {
@@ -135,8 +135,6 @@ publishing {
             version = project.version
 
             from components.java
-            //artifact(sourcesJar)
-            //artifact(javadocJar)
 
             pom {
                 name = project.name
