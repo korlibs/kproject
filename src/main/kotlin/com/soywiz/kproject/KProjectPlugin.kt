@@ -10,25 +10,46 @@ import org.jetbrains.kotlin.gradle.plugin.mpp.*
 @Suppress("unused")
 class KProjectPlugin : Plugin<Project> {
     override fun apply(project: Project) {
-        project.repositories {
-            mavenLocal()
-            mavenCentral()
-            google()
-            gradlePluginPortal()
-        }
+
         project.plugins.applyOnce("kotlin-multiplatform")
         //project.repositories()
         val kotlin = project.extensions.getByType(KotlinMultiplatformExtension::class.java)
-        kotlin.metadata()
-        kotlin.jvm()
-        kotlin.js(KotlinJsCompilerType.IR) {
-            browser()
+        kotlin.apply {
+            metadata()
+            jvm {
+                compilations.all {
+                    kotlinOptions.jvmTarget = "1.8"
+                }
+                //withJava()
+                testRuns["test"].executionTask.configure {
+                    useJUnitPlatform()
+                }
+            }
+            js(KotlinJsCompilerType.IR) {
+                browser {
+                    commonWebpackConfig {
+                        cssSupport.enabled = true
+                    }
+                }
+            }
+            macosArm64()
+            macosX64()
+            mingwX64()
+            linuxX64()
+            sourceSets {
+                val common = createPair("common")
+                common.test.dependencies { implementation(kotlin("test")) }
+                val concurrent = createPair("concurrent")
+                createPair("jvm").dependsOn(concurrent)
+                createPair("js")
+                val native = createPair("native").dependsOn(concurrent)
+                val macos = createPair("macos")
+                createPair("macosX64").dependsOn(macos)
+                createPair("macosArm64").dependsOn(macos)
+            }
+            println("KProjectPlugin: $project")
         }
-        kotlin.sourceSets {
-            val concurrent = createPair("concurrent")
-            createPair("jvm").dependsOn(concurrent)
-        }
-        println("KProjectPlugin: $project")
+
     }
 
     // SourceSet pairs: main + test

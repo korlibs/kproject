@@ -1,0 +1,7 @@
+buildscript { repositories { mavenLocal(); mavenCentral(); google(); gradlePluginPortal() } }
+plugins {
+  id("com.soywiz.kproject")
+}
+dependencies {
+  add("commonMainApi", project(":korge-dragonbones"))
+}

@@ -22,29 +22,32 @@ fun File.execToString(vararg params: String, throwOnError: Boolean = true): Stri
 }
 
 
-class KSet {
+class KSet(val settings: Settings) {
     val projectMap by lazy { LinkedHashMap<File, KProject>() }
     val kproject by lazy { getKProjectDir() }
     val depTexts = arrayListOf<String>()
     fun addDeps(text: String) {
         depTexts.add(text)
     }
-    fun ensureGitSources(projectName: String, repo: String, path: String, rel: String, subfolder: String): File {
+    fun ensureGitSources(projectName: String, repo: String, path: String, rel: String, subfolder: String, modulesDirectory: File? = null): File {
         val repo = ensureRepo(repo)
-        val basePath = "modules/$repo/__checkouts__/${rel}/$projectName"
-        val folder = kproject[basePath].also { it.mkdirs() }
-        val paramsFile = folder[".params"]
+        val outputCheckoutDir = when {
+            modulesDirectory != null -> modulesDirectory[projectName]
+            else -> kproject["modules/$repo/__checkouts__/${rel}/$projectName"]
+        }
+        outputCheckoutDir.mkdirs()
+        val paramsFile = outputCheckoutDir[".params"]
         val paramsStr = "$projectName::$repo::$path::$rel"
 
         if (paramsFile.takeIf { it.exists() }?.readText() != paramsStr) {
             //println("*******************")
-            folder.deleteRecursively()
+            outputCheckoutDir.deleteRecursively()
             paramsFile.parentFile.mkdirs()
             paramsFile.writeText(paramsStr)
         }
         //println("---------------")
 
-        return getCachedGitCheckout(projectName, repo, path, rel, subfolder)
+        return getCachedGitCheckout(projectName, repo, path, rel, subfolder, outputCheckoutDir)
     }
 }
 
@@ -60,7 +63,7 @@ class KSource(
             "git" -> {
                 val (_, repo, path, version) = parts
                 //File(kProj.kproject, "modules/korge-dragonbones/v3.2.0")
-                project.settings.ensureGitSources(project.name, repo, path, version, "src")
+                project.settings.ensureGitSources(project.name, repo, path, version, "src", project.settings.settings.rootDir["modules"])
             }
             "bundled" -> {
                 //parts.last()
@@ -156,7 +159,11 @@ data class KProject(
     }
 
     fun resolveSource(): File {
-        val src = src ?: "./${name}"
+        val src = when {
+            src != null -> src
+            file.name == "kproject.json5" -> "./"
+            else -> "./${name}"
+        }
         return KSource(this, src).resolveDir()
     }
 
@@ -164,16 +171,17 @@ data class KProject(
     override val gradleRef = "project(\":${name}\")"
 
     override fun resolve(settings: Settings) {
-        val file = resolveSource()
+        val sourceDirectory = resolveSource()
         //println("resolve: $name -> $file")
         //if (!root) {
         settings.include(":${name}")
-        settings.project(":${name}").projectDir = file
+        settings.project(":${name}").projectDir = sourceDirectory
         //}
         val deps = dependencies.map { resolveDependency(it).also { it.resolve(settings) } }
         val buildGradleText = buildString {
             //appendLine("configure([project(\":${if (root) "" else name}\")]) {")
             //appendLine("configure([project(\":${name}\")]) {")
+            appendLine("buildscript { repositories { mavenLocal(); mavenCentral(); google(); gradlePluginPortal() } }")
             appendLine("plugins {")
             appendLine("  id(\"com.soywiz.kproject\")")
             appendLine("}")
@@ -185,7 +193,7 @@ data class KProject(
             //appendLine("}")
         }
         //this.settings.addDeps(buildGradleText)
-        val buildGradleFile = java.io.File(file, "build.gradle")
-        buildGradleFile.writeTextIfNew(buildGradleText)
+        java.io.File(sourceDirectory, "build.gradle").writeTextIfNew(buildGradleText)
+        java.io.File(sourceDirectory, ".gitignore").writeTextIfNew(listOf("./build").joinToString("\n"))
     }
 }

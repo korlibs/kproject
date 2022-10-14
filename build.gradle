@@ -79,6 +79,12 @@ gradlePlugin {
             description = 'Allows to use sourcecode & git-based dependencies'
             implementationClass = 'com.soywiz.kproject.KProjectPlugin'
         }
+        kprojectRoot {
+            id = 'com.soywiz.kproject.root'
+            displayName = 'kproject'
+            description = 'Allows to use sourcecode & git-based dependencies'
+            implementationClass = 'com.soywiz.kproject.KProjectRootPlugin'
+        }
         kprojectSettings {
             id = 'com.soywiz.kproject.settings'
             displayName = 'kproject-settings'

@@ -68,7 +68,8 @@ fun getCachedGitCheckout(
     repo: String,
     projectPath: String,
     rel: String,
-    subfolder: String = ""
+    subfolder: String = "",
+    outputCheckoutDir: File
 ): File {
     val VERSION = 2
     val repo = ensureRepo(repo)
@@ -76,7 +77,6 @@ fun getCachedGitCheckout(
     val kprojectRoot = getKProjectDir()
     val gitFolder = File(kprojectRoot, "modules/$repo/__git__")
 
-    val outputCheckoutDir = File(kprojectRoot, "modules/$repo/__checkouts__/$rel/$projectName")
     if (outputCheckoutDir[".gitarchive"].takeIf { it.exists() }?.readText() == "$VERSION") return outputCheckoutDir
 
     val git = when {

@@ -1,0 +1,6 @@
+{
+  name: "sample",
+  dependencies: [
+    "../libs/korge-dragonbones"
+  ]
+}

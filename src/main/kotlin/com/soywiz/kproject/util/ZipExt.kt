@@ -1,7 +1,5 @@
 package com.soywiz.kproject.util
 
-import org.gradle.api.internal.file.archive.*
-import org.gradle.util.internal.*
 import java.io.*
 import java.util.zip.*
 import java.util.zip.ZipEntry
@@ -62,7 +60,7 @@ fun fileEntriesRelativeTo(baseDir: File, files: Sequence<File>): Sequence<Pair<S
 
 internal
 fun File.normalisedPathRelativeTo(baseDir: File) =
-    TextUtil.normaliseFileSeparators(relativeTo(baseDir).path)
+    relativeTo(baseDir).path.replace('\\', '/')
 
 
 fun zipTo(zipFile: File, entries: Sequence<Pair<String, ByteArray>>) {
@@ -77,7 +75,7 @@ fun zipTo(outputStream: OutputStream, entries: Sequence<Pair<String, ByteArray>>
             val (path, bytes) = entry
             zos.putNextEntry(
                 ZipEntry(path).apply {
-                    time = ZipCopyAction.CONSTANT_TIME_FOR_ZIP_ENTRIES
+                    time = 0L
                     size = bytes.size.toLong()
                 }
             )
@@ -99,7 +97,7 @@ fun unzipTo(outputDirectory: File, zipFile: File) {
 
 private
 fun unzipEntryTo(outputDirectory: File, zip: ZipFile, entry: ZipEntry) {
-    val output = outputDirectory.resolve(GUtil.safeZipEntryName(entry.name))
+    val output = outputDirectory.resolve(File(entry.name).normalize().toString().trimStart('/'))
     if (entry.isDirectory) {
         output.mkdirs()
     } else {

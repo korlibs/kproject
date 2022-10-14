@@ -1,3 +1,3 @@
 plugins {
-    //id("com.soywiz.kproject")
+    id("com.soywiz.kproject.root")
 }
