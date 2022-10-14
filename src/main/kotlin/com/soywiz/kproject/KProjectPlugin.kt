@@ -38,7 +38,9 @@ class KProjectPlugin : Plugin<Project> {
             macosX64()
             mingwX64()
             linuxX64()
+            iosX64()
             iosArm64()
+            iosSimulatorArm64()
             sourceSets {
                 val common = createPair("common")
                 common.test.dependencies { implementation(kotlin("test")) }
@@ -54,6 +56,7 @@ class KProjectPlugin : Plugin<Project> {
                 createPair("macosArm64").dependsOn(macos)
                 val ios = createPair("ios").dependsOn(apple)
                 createPair("iosArm64").dependsOn(ios)
+                createPair("iosSimulatorArm64").dependsOn(ios)
                 val linux = createPair("linux").dependsOn(posix)
                 createPair("linuxX64").dependsOn(linux)
             }
