@@ -7,14 +7,14 @@ YAML-based source-based kotlin module descriptors that runs on top of gradle.
 ### `kproject.yml`
 
 ```
-name: "korio"
-type: "library"
-version: "3.2.0"
-src: "./src"
+name: korio
+type: library
+version: 3.2.0
+src: ./src
 dependencies:
-- "./libs/kds"
-- "git::adder::korlibs/kproject::/modules/adder::54f73b01cea9cb2e8368176ac45f2fca948e57db"
-- "maven::common::org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4"
+- ./libs/kds
+- git::adder::korlibs/kproject::/modules/adder::54f73b01cea9cb2e8368176ac45f2fca948e57db
+- maven::common::org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4
 
 ```
 
@@ -25,10 +25,10 @@ Projects can contain `src` folders that are subfolders in git repositories:
 ### `libs/kds.kproject.yml`
 
 ```
-name: "kds"
-type: "library"
-version: "3.2.0"
-src: "git::korlibs/korge::/kds/src::v3.2.0"
+name: kds
+type: library
+version: 3.2.0
+src: git::korlibs/korge::/kds/src::v3.2.0
 ```
 
 ## No more maven central publishing, distributed sources

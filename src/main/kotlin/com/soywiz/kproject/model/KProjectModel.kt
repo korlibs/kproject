@@ -1,5 +1,6 @@
 package com.soywiz.kproject.model
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.soywiz.kproject.git.*
 import com.soywiz.kproject.util.*
 import org.gradle.api.initialization.*
@@ -59,7 +60,7 @@ class KSource(
             "git" -> {
                 val (_, repo, path, version) = parts
                 //File(kProj.kproject, "modules/korge-dragonbones/v3.2.0")
-                project.settings.ensureGitSources(project.name, repo, path, version, "src", project.settings.settings.rootDir["modules"])
+                project.settings.ensureGitSources(project.rname, repo, path, version, "src", project.settings.settings.rootDir["modules"])
             }
             "bundled" -> {
                 //parts.last()
@@ -98,15 +99,18 @@ data class KGradleDependency(
 }
 
 data class KProject(
-    val name: String,
+    val name: String? = null,
     val version: String = "unknown",
     val type: String? = "library",
     val src: String? = null,
+    val plugins: List<String> = emptyList(),
     val dependencies: List<String> = emptyList()
 ) : KDependency {
-    internal lateinit var file: File
-    internal lateinit var settings: KSet
-    internal var root: Boolean = false
+    @JsonIgnore internal lateinit var file: File
+    @JsonIgnore internal lateinit var settings: KSet
+    @JsonIgnore internal var root: Boolean = false
+
+    val rname: String get() = name ?: file.name.substringBefore('.').takeIf { it.isNotEmpty() } ?: file.parentFile.name
 
     val projectDir: File get() = file.parentFile
 
@@ -138,32 +142,54 @@ data class KProject(
         val src = when {
             src != null -> src
             file.name == "kproject.yml" -> "./"
-            else -> "./${name}"
+            else -> "./${rname}"
         }
         return KSource(this, src).resolveDir()
     }
 
-    override val gradleSourceSet = "commonMainApi"
-    override val gradleRef = "project(\":${name}\")"
+    override val gradleSourceSet get() = "commonMainApi"
+    override val gradleRef get() = "project(\":${rname}\")"
 
     override fun resolve(settings: Settings) {
         val sourceDirectory = resolveSource()
         //println("resolve: $name -> $file")
         //if (!root) {
-        settings.include(":${name}")
-        settings.project(":${name}").projectDir = sourceDirectory
+        settings.include(":${rname}")
+        settings.project(":${rname}").projectDir = sourceDirectory
         //}
         val deps = dependencies.map { resolveDependency(it).also { it.resolve(settings) } }
         val buildGradleText = buildString {
             //appendLine("configure([project(\":${if (root) "" else name}\")]) {")
             //appendLine("configure([project(\":${name}\")]) {")
             appendLine("buildscript { repositories { mavenLocal(); mavenCentral(); google(); gradlePluginPortal() } }")
+            when (this@KProject.type) {
+                "dependencies" -> {
+                }
+                "library" -> {
+                }
+                else -> {
+                }
+            }
             appendLine("plugins {")
             appendLine("  id(\"com.soywiz.kproject\")")
+            for (plugin in this@KProject.plugins) {
+                when (plugin) {
+                    "serialization" -> {
+                        appendLine("  id(\"org.jetbrains.kotlin.plugin.serialization\")")
+                    }
+                }
+            }
             appendLine("}")
             appendLine("dependencies {")
             for (dep in deps) {
                 appendLine("  add(\"${dep.gradleSourceSet}\", ${dep.gradleRef})")
+            }
+            for (plugin in this@KProject.plugins) {
+                when (plugin) {
+                    "serialization" -> {
+                        appendLine("  add(\"commonMainApi\", \"org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.0\")")
+                    }
+                }
             }
             appendLine("}")
             //appendLine("}")
