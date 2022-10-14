@@ -136,7 +136,10 @@ publishing {
             version = project.version
 
             from components.java
-
+        }
+    }
+    afterEvaluate {
+        publications.withType(MavenPublication) {
             pom {
                 name = project.name
                 description = project.property("project.description")
