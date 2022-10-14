@@ -2,14 +2,14 @@ package com.soywiz.kproject.model
 
 /*
 
-val projectFile = File(rootDir, "kproject.json5").also {
+val projectFile = File(rootDir, "kproject.yml").also {
     if (!it.exists()) it.writeText(
         """
             {
                 // Name of the project
                 name: "untitled",
                 version: "unknown",
-                // Dependency list, to other kproject.json5 modules or maven
+                // Dependency list, to other kproject.yml modules or maven
                 // Examples:
                 // - "./libs/krypto",
                 // - "maven::common::org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4"

@@ -13,8 +13,8 @@ import java.io.*
 //}
 
 fun Settings.kproject(path: String) {
-    val file1 = File(rootDir, "$path.kproject.json5")
-    val file2 = File(rootDir, "$path/kproject.json5")
-    val file = listOf(file1, file2).firstOrNull { it.exists() } ?: error("Can't find kproject.json5 at path $path")
+    val file1 = File(rootDir, "$path.kproject.yml")
+    val file2 = File(rootDir, "$path/kproject.yml")
+    val file = listOf(file1, file2).firstOrNull { it.exists() } ?: error("Can't find kproject.yml at path $path")
     KProject.load(file, KSet(this), root = true).resolve(this)
 }

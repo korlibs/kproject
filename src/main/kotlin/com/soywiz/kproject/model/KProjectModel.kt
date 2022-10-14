@@ -1,9 +1,5 @@
 package com.soywiz.kproject.model
 
-import com.fasterxml.jackson.annotation.*
-import com.fasterxml.jackson.core.*
-import com.fasterxml.jackson.databind.*
-import com.fasterxml.jackson.module.kotlin.*
 import com.soywiz.kproject.git.*
 import com.soywiz.kproject.util.*
 import org.gradle.api.initialization.*
@@ -101,18 +97,6 @@ data class KGradleDependency(
     }
 }
 
-object JSON5 {
-    val mapper: ObjectMapper = jacksonObjectMapper()
-        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-        .configure(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true)
-        .configure(JsonParser.Feature.ALLOW_TRAILING_COMMA, true)
-        .configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, true)
-        .configure(JsonParser.Feature.ALLOW_BACKSLASH_ESCAPING_ANY_CHARACTER, true)
-        .configure(JsonParser.Feature.ALLOW_NON_NUMERIC_NUMBERS, true)
-        .configure(JsonParser.Feature.ALLOW_COMMENTS, true)
-        .configure(JsonParser.Feature.ALLOW_LEADING_DECIMAL_POINT_FOR_NUMBERS, true)
-}
-
 data class KProject(
     val name: String,
     val version: String = "unknown",
@@ -120,22 +104,14 @@ data class KProject(
     val src: String? = null,
     val dependencies: List<String> = emptyList()
 ) : KDependency {
-    @JsonIgnore lateinit var file: File
-    @JsonIgnore lateinit var settings: KSet
-    @JsonIgnore var root: Boolean = false
+    internal lateinit var file: File
+    internal lateinit var settings: KSet
+    internal var root: Boolean = false
 
     val projectDir: File get() = file.parentFile
 
     companion object {
-        fun load(file: File, settings: KSet, root: Boolean): KProject {
-            return settings.projectMap.getOrPut(file.canonicalFile) {
-                JSON5.mapper.readValue<KProject>(file.readText()).also {
-                    it.root = root
-                    it.file = file.canonicalFile
-                    it.settings = settings
-                }
-            }
-        }
+
     }
 
     fun resolveDependency(path: String): KDependency {
@@ -147,13 +123,13 @@ data class KProject(
             "git" -> {
                 val (_, name, repo, path, rel) = info
                 val file = settings.ensureGitSources(name, repo, path, rel, "")
-                load(File(file, "kproject.json5"), settings, false)
+                load(File(file, "kproject.yml"), settings, false)
             }
             else -> {
                 if (!path.startsWith(".")) error("dependency '$path' unrecognised")
-                val file1 = File(file.parentFile, "$path.kproject.json5")
-                val file2 = File(file.parentFile, "$path/kproject.json5")
-                load(listOf(file1, file2).firstOrNull { it.exists() } ?: error("Can't find suitable kproject.json5: $file1, $file2"), settings, false)
+                val file1 = File(file.parentFile, "$path.kproject.yml")
+                val file2 = File(file.parentFile, "$path/kproject.yml")
+                load(listOf(file1, file2).firstOrNull { it.exists() } ?: error("Can't find suitable kproject.yml: $file1, $file2"), settings, false)
             }
         }
     }
@@ -161,7 +137,7 @@ data class KProject(
     fun resolveSource(): File {
         val src = when {
             src != null -> src
-            file.name == "kproject.json5" -> "./"
+            file.name == "kproject.yml" -> "./"
             else -> "./${name}"
         }
         return KSource(this, src).resolveDir()
