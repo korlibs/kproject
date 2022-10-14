@@ -25,6 +25,6 @@ jobs:
       - run: chmod +x gradlew
       - run: ./gradlew check
       - run: ./gradlew publishMavenPublicationToMavenRepository
-      - run: ./gradlew publishKprojectPluginMarkerMavenPublicationToMavenLocal
-      - run: ./gradlew publishKprojectRootPluginMarkerMavenPublicationToMavenLocal
-      - run: ./gradlew publishKprojectSettingsPluginMarkerMavenPublicationToMavenLocal
+      - run: ./gradlew publishKprojectPluginMarkerMavenPublicationToMavenRepository
+      - run: ./gradlew publishKprojectRootPluginMarkerMavenPublicationToMavenRepository
+      - run: ./gradlew publishKprojectSettingsPluginMarkerMavenPublicationToMavenRepository
