@@ -1,7 +1,9 @@
-/.idea
-/.gradle
+.fleet
+.idea
+.gradle
 /build
-/src/build
-/src/build.gradle
-build.gradle
-/gradle/build.gradle.kts
+/prototype/build
+/prototype/src/build
+/prototype/src/build.gradle
+/prototype/build.gradle
+/prototype/gradle/build.gradle.kts
