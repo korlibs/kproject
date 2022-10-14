@@ -1,0 +1,10 @@
+{
+  name: "kmem",
+  type: "library",
+  version: "3.2.0",
+  src: "git::korlibs/korge::/kmem/src::v3.2.0",
+  dependencies: [
+    "maven::jvm::net.java.dev.jna:jna:5.12.1",
+    "maven::jvm::net.java.dev.jna:jna-platform:5.12.1",
+  ],
+}
