@@ -1,43 +1,39 @@
 # kproject - Liberate your Kotlin projects
 
-JSON-based source-based kotlin module descriptors that runs on top of gradle.
+YAML-based source-based kotlin module descriptors that runs on top of gradle.
 
 ## Define your kotlin multiplatform multi-module projects like this:
 
-### `kproject.json5`
+### `kproject.yml`
 
 ```
-{
-  name: "korio",
-  type: "library",
-  version: "3.2.0",
-  src: "./src",
-  dependencies: [
-    "./libs/kds",
-    "git::adder::korlibs/kproject::/modules/adder::54f73b01cea9cb2e8368176ac45f2fca948e57db",
-    "maven::common::org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4",
-  ],
-}
+name: "korio"
+type: "library"
+version: "3.2.0"
+src: "./src"
+dependencies:
+- "./libs/kds"
+- "git::adder::korlibs/kproject::/modules/adder::54f73b01cea9cb2e8368176ac45f2fca948e57db"
+- "maven::common::org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4"
+
 ```
 
 ## Create kprojects from existing GitHub repositories
 
 Projects can contain `src` folders that are subfolders in git repositories:
 
-### `libs/kds.kproject.json5`
+### `libs/kds.kproject.yml`
 
 ```
-{
-  name: "kds",
-  type: "library",
-  version: "3.2.0",
-  src: "git::korlibs/korge::/kds/src::v3.2.0"
-}
+name: "kds"
+type: "library"
+version: "3.2.0"
+src: "git::korlibs/korge::/kds/src::v3.2.0"
 ```
 
 ## No more maven central publishing, distributed sources
 
-With a single `settings.gradle.kts` and `kproject.json5`
+With a single `settings.gradle.kts` and `kproject.yml`
 files you can reference any version and any project hosted at github or maven repositories
 and compile to any supported platform on the fly.
 
@@ -46,15 +42,16 @@ and compile to any supported platform on the fly.
 Just put this code in your `settings.gradle.kts`:
 
 ```kotlin
-val kprojectVersion = "54f73b01cea9cb2e8368176ac45f2fca948e57db"
-apply(from = file("gradle/$kprojectVersion.settings.gradle.kts").also {
-    if (!it.exists()) it.writeBytes(java.net.URL("https://raw.githubusercontent.com/korlibs/kproject/$kprojectVersion/settings.gradle.kts").readBytes())
-})
+pluginManagement { repositories {  mavenLocal(); mavenCentral(); google(); gradlePluginPortal()  }  }
 
-rootProject.name = "your-project-name"
+plugins {
+    id("com.soywiz.kproject.settings") version "0.0.1-SNAPSHOT"
+}
+
+//kproject("./deps")
 ```
 
-Run gradle without tasks, and start editing your automatically-generated `kproject.json5` file.
+Run gradle without tasks, and start editing your automatically-generated `kproject.yml` file.
 
 ## What solves
 
@@ -74,7 +71,7 @@ to other modules. So they could not be compiled in parallel and were being recom
 To fix that, this project wss created.
 Kproject injects in the settings.gradle,
 in a moment where we can define new modules.
-Kproject locates a kproject.json5 file,
+Kproject locates a kproject.yml file,
 parses it and resolves all the modules needed
 for the project. And then creates gradle modules
 based on those; local sources, maven artifcats,
