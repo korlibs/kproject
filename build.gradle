@@ -1,0 +1,156 @@
+buildscript {
+    repositories {
+        mavenLocal()
+        mavenCentral()
+        maven { url = uri("https://plugins.gradle.org/m2/") }
+    }
+    dependencies {
+        classpath("com.gradle.publish:plugin-publish-plugin:$gradlePublishPluginVersion")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
+    }
+}
+
+plugins {
+    id "org.gradle.kotlin.kotlin-dsl" version "2.3.3"
+    id "java-gradle-plugin"
+}
+
+apply plugin: "com.gradle.plugin-publish"
+apply plugin: "kotlin"
+apply plugin: 'maven-publish'
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+    google()
+    maven { url = uri("https://plugins.gradle.org/m2/") }
+}
+
+String forcedVersion = System.getenv('FORCED_KORGE_PLUGINS_VERSION')
+
+if (forcedVersion != null) {
+    allprojects {
+        this.version = forcedVersion?.replace("refs/tags/v", "")?.replace("v", "") ?: project.version
+    }
+}
+
+def signingSecretKeyRingFile = System.getenv("ORG_GRADLE_PROJECT_signingSecretKeyRingFile") ?: project.findProperty("signing.secretKeyRingFile")?.toString()
+
+// gpg --armor --export-secret-keys foobar@example.com | awk 'NR == 1 { print "signing.signingKey=" } 1' ORS='\\n'
+def signingKey = System.getenv("ORG_GRADLE_PROJECT_signingKey") ?: project.findProperty("signing.signingKey")?.toString()
+def signingPassword = System.getenv("ORG_GRADLE_PROJECT_signingPassword") ?: project.findProperty("signing.password")?.toString()
+
+if (signingSecretKeyRingFile != null || signingKey != null) {
+    apply plugin: 'signing'
+    signing {
+        required { !project.version.endsWith('-SNAPSHOT') }
+        if (signingKey != null) {
+            useInMemoryPgpKeys(signingKey, signingPassword)
+        }
+        sign(publishing.publications)
+    }
+}
+
+dependencies {
+    testImplementation("junit:junit:$junitVersion")
+    testImplementation("org.jetbrains.kotlin:kotlin-test")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin")
+    implementation("org.eclipse.jgit:org.eclipse.jgit:6.3.0.202209071007-r")
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.13.4")
+    implementation('com.fasterxml.jackson.module:jackson-module-kotlin:2.13.4')
+
+    implementation(gradleApi())
+    implementation(localGroovy())
+}
+
+
+pluginBundle {
+    website = "https://github.com/korlibs/easy-kotlin-mpp-gradle-plugin"
+    vcsUrl = "https://github.com/korlibs/easy-kotlin-mpp-gradle-plugin"
+    tags = ["korlibs", "kotlin", "kotlin-mpp"]
+}
+
+gradlePlugin {
+    plugins {
+        kproject {
+            id = 'com.soywiz.kproject'
+            displayName = 'kproject'
+            description = 'Allows to use sourcecode & git-based dependencies'
+            implementationClass = 'com.soywiz.kproject.KProjectPlugin'
+        }
+        kprojectSettings {
+            id = 'com.soywiz.kproject.settings'
+            displayName = 'kproject-settings'
+            description = 'Allows to use sourcecode & git-based dependencies'
+            implementationClass = 'com.soywiz.kproject.KProjectSettingsPlugin'
+        }
+    }
+}
+
+def sonatypePublishUser = (System.getenv("SONATYPE_USERNAME") ?: rootProject.findProperty("SONATYPE_USERNAME")?.toString() ?: project.findProperty("sonatypeUsername")?.toString())
+def sonatypePublishPassword = (System.getenv("SONATYPE_PASSWORD") ?: rootProject.findProperty("SONATYPE_PASSWORD")?.toString() ?: project.findProperty("sonatypePassword")?.toString())
+
+if (sonatypePublishUser == null || sonatypePublishPassword == null) {
+    println("Required sonatypeUsername and sonatypePassword in ~/.gradle/gradle.properties")
+}
+
+task sourcesJar(type: Jar) {
+    archiveClassifier.set('sources')
+    from sourceSets.main.allSource
+}
+
+task javadocJar(type: Jar) {
+    archiveClassifier.set('javadoc')
+}
+
+publishing {
+    repositories {
+        if (sonatypePublishUser && sonatypePublishPassword) {
+            maven {
+                credentials {
+                    username = sonatypePublishUser
+                    password = sonatypePublishPassword
+                }
+                if (version.toString().contains("-SNAPSHOT")) {
+                    url = uri("https://oss.sonatype.org/content/repositories/snapshots/")
+                } else {
+                    url = uri("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
+                }
+            }
+        }
+    }
+    publications {
+        maven(MavenPublication) {
+            groupId = project.group
+            artifactId = project.name
+            version = project.version
+
+            from components.java
+            //artifact(sourcesJar)
+            //artifact(javadocJar)
+
+            pom {
+                name = project.name
+                description = project.property("project.description")
+                url = project.property("project.scm.url")
+                developers {
+                    developer {
+                        id = project.property("project.author.id")
+                        name = project.property("project.author.name")
+                        email = project.property("project.author.email")
+                    }
+                }
+                licenses {
+                    license {
+                        name = project.property("project.license.name")
+                        url = project.property("project.license.url")
+                    }
+                }
+                scm {
+                    url = project.property("project.scm.url")
+                }
+            }
+        }
+    }
+}
