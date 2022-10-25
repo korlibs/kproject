@@ -1,5 +1,6 @@
 package com.soywiz.kproject
 
+import com.soywiz.kproject.model.*
 import com.soywiz.kproject.util.*
 import org.gradle.api.*
 import org.gradle.api.plugins.*
@@ -7,6 +8,7 @@ import org.gradle.kotlin.dsl.*
 import org.jetbrains.kotlin.gradle.dsl.*
 import org.jetbrains.kotlin.gradle.plugin.*
 import org.jetbrains.kotlin.gradle.plugin.mpp.*
+import java.io.*
 
 @Suppress("unused")
 class KProjectPlugin : Plugin<Project> {
@@ -16,49 +18,71 @@ class KProjectPlugin : Plugin<Project> {
         project.plugins.applyOnce("kotlin-multiplatform")
         //project.repositories()
         val kotlin = project.extensions.getByType(KotlinMultiplatformExtension::class.java)
+
+        val kprojectYml = File(project.projectDir, "kproject.yml")
+        val kproject = if (kprojectYml.exists()) KProject.load(kprojectYml, KSet(File("modules")), true) else null
+
+        fun hasTarget(name: String): Boolean = kproject?.hasTarget(name) ?: true
+
         kotlin.apply {
             metadata()
-            jvm {
-                compilations.all {
-                    kotlinOptions.jvmTarget = "1.8"
-                }
-                //withJava()
-                testRuns["test"].executionTask.configure {
-                    useJUnitPlatform()
-                }
-            }
-            js(KotlinJsCompilerType.IR) {
-                browser {
-                    commonWebpackConfig {
-                        cssSupport.enabled = true
+            if (hasTarget("jvm")) {
+                jvm {
+                    compilations.all {
+                        kotlinOptions.jvmTarget = "1.8"
+                    }
+                    //withJava()
+                    testRuns["test"].executionTask.configure {
+                        useJUnitPlatform()
                     }
                 }
             }
-            macosArm64()
-            macosX64()
-            mingwX64()
-            linuxX64()
-            iosX64()
-            iosArm64()
-            iosSimulatorArm64()
+            if (hasTarget("js")) {
+                js(KotlinJsCompilerType.IR) {
+                    browser {
+                        commonWebpackConfig {
+                            cssSupport.enabled = true
+                        }
+                    }
+                }
+            }
+            if (hasTarget("desktop")) {
+                macosArm64()
+                macosX64()
+                mingwX64()
+                linuxX64()
+            }
+            if (hasTarget("mobile")) {
+                iosX64()
+                iosArm64()
+                iosSimulatorArm64()
+            }
             sourceSets {
                 val common = createPair("common")
                 common.test.dependencies { implementation(kotlin("test")) }
                 val concurrent = createPair("concurrent")
                 val jvmAndroid = createPair("jvmAndroid").dependsOn(concurrent)
-                val jvm = createPair("jvm").dependsOn(jvmAndroid)
-                val js = createPair("js")
+                if (hasTarget("jvm")) {
+                    val jvm = createPair("jvm").dependsOn(jvmAndroid)
+                }
+                if (hasTarget("js")) {
+                    val js = createPair("js")
+                }
                 val native = createPair("native").dependsOn(concurrent)
                 val posix = createPair("posix").dependsOn(native)
                 val apple = createPair("apple").dependsOn(posix)
                 val macos = createPair("macos").dependsOn(apple)
-                createPair("macosX64").dependsOn(macos)
-                createPair("macosArm64").dependsOn(macos)
-                val ios = createPair("ios").dependsOn(apple)
-                createPair("iosArm64").dependsOn(ios)
-                createPair("iosSimulatorArm64").dependsOn(ios)
-                val linux = createPair("linux").dependsOn(posix)
-                createPair("linuxX64").dependsOn(linux)
+                if (hasTarget("desktop")) {
+                    createPair("macosX64").dependsOn(macos)
+                    createPair("macosArm64").dependsOn(macos)
+                    val linux = createPair("linux").dependsOn(posix)
+                    createPair("linuxX64").dependsOn(linux)
+                }
+                if (hasTarget("mobile")) {
+                    val ios = createPair("ios").dependsOn(apple)
+                    createPair("iosArm64").dependsOn(ios)
+                    createPair("iosSimulatorArm64").dependsOn(ios)
+                }
             }
             //println("KProjectPlugin: $project")
         }

@@ -19,7 +19,9 @@ fun File.execToString(vararg params: String, throwOnError: Boolean = true): Stri
 }
 
 
-class KSet(val settings: Settings) {
+class KSet(val modulesDir: File) {
+    constructor(settings: Settings) : this(settings.rootDir["modules"])
+
     val projectMap by lazy { LinkedHashMap<File, KProject>() }
     val kproject by lazy { getKProjectDir() }
     val depTexts = arrayListOf<String>()
@@ -60,7 +62,7 @@ class KSource(
             "git" -> {
                 val (_, repo, path, version) = parts
                 //File(kProj.kproject, "modules/korge-dragonbones/v3.2.0")
-                project.settings.ensureGitSources(project.rname, repo, path, version, "src", project.settings.settings.rootDir["modules"])
+                project.settings.ensureGitSources(project.rname, repo, path, version, "src", project.settings.modulesDir)
             }
             "bundled" -> {
                 //parts.last()
@@ -104,8 +106,15 @@ data class KProject(
     val type: String? = "library",
     val src: String? = null,
     val plugins: List<String> = emptyList(),
-    val dependencies: List<String> = emptyList()
+    val gradle: List<String> = emptyList(),
+    val dependencies: List<String> = emptyList(),
+    val targets: Set<String> = setOf("all"),
 ) : KDependency {
+    fun hasTarget(target: String): Boolean {
+        if ("all" in this.targets) return true
+        return target in targets
+    }
+
     @JsonIgnore internal lateinit var file: File
     @JsonIgnore internal lateinit var settings: KSet
     @JsonIgnore internal var root: Boolean = false
@@ -126,7 +135,7 @@ data class KProject(
             }
             "git" -> {
                 val (_, name, repo, path, rel) = info
-                val file = settings.ensureGitSources(name, repo, path, rel, "", settings.settings.rootDir["modules"])
+                val file = settings.ensureGitSources(name, repo, path, rel, "", settings.modulesDir)
                 load(File(file, "kproject.yml"), settings, false)
             }
             else -> {
@@ -177,9 +186,22 @@ data class KProject(
                     "serialization" -> {
                         appendLine("  id(\"org.jetbrains.kotlin.plugin.serialization\")")
                     }
+                    else -> {
+                        val parts = plugin.split(":", limit = 2)
+                        appendLine(buildString {
+                            append("  id(\"${parts.first()}\")")
+                            if (parts.size >= 2) {
+                                append("  version \"${parts.last()}\"")
+                            }
+                        })
+                    }
                 }
             }
             appendLine("}")
+            for (gradle in this@KProject.gradle) {
+                appendLine(gradle)
+            }
+
             appendLine("dependencies {")
             for (dep in deps) {
                 appendLine("  add(\"${dep.gradleSourceSet}\", ${dep.gradleRef})")
