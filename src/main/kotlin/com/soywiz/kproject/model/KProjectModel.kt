@@ -105,14 +105,19 @@ data class KProject(
     val version: String = "unknown",
     val type: String? = "library",
     val src: String? = null,
-    val plugins: List<String> = emptyList(),
-    val gradle: List<String> = emptyList(),
-    val dependencies: List<String> = emptyList(),
-    val targets: Set<String> = setOf("all"),
+    val plugins: List<String>? = emptyList(),
+    val gradle: List<String>? = emptyList(),
+    val dependencies: List<String>? = emptyList(),
+    val targets: Set<String>? = setOf("all"),
 ) : KDependency {
+    val pluginsNotNull get() = plugins ?: emptyList()
+    val gradleNotNull get() = gradle ?: emptyList()
+    val dependenciesNotNull get() = dependencies ?: emptyList()
+    val targetsNotNull get() = targets ?: emptyList()
+
     fun hasTarget(target: String): Boolean {
-        if ("all" in this.targets) return true
-        return target in targets
+        if ("all" in this.targetsNotNull) return true
+        return target in targetsNotNull
     }
 
     @JsonIgnore internal lateinit var file: File
@@ -166,7 +171,7 @@ data class KProject(
         settings.include(":${rname}")
         settings.project(":${rname}").projectDir = sourceDirectory
         //}
-        val deps = dependencies.map { resolveDependency(it).also { it.resolve(settings) } }
+        val deps = dependenciesNotNull.map { resolveDependency(it).also { it.resolve(settings) } }
         val buildGradleText = buildString {
             //appendLine("configure([project(\":${if (root) "" else name}\")]) {")
             //appendLine("configure([project(\":${name}\")]) {")
@@ -181,7 +186,7 @@ data class KProject(
             }
             appendLine("plugins {")
             appendLine("  id(\"com.soywiz.kproject\")")
-            for (plugin in this@KProject.plugins) {
+            for (plugin in this@KProject.pluginsNotNull) {
                 when (plugin) {
                     "serialization" -> {
                         appendLine("  id(\"org.jetbrains.kotlin.plugin.serialization\")")
@@ -198,7 +203,7 @@ data class KProject(
                 }
             }
             appendLine("}")
-            for (gradle in this@KProject.gradle) {
+            for (gradle in this@KProject.gradleNotNull) {
                 appendLine(gradle)
             }
 
@@ -206,7 +211,7 @@ data class KProject(
             for (dep in deps) {
                 appendLine("  add(\"${dep.gradleSourceSet}\", ${dep.gradleRef})")
             }
-            for (plugin in this@KProject.plugins) {
+            for (plugin in this@KProject.pluginsNotNull) {
                 when (plugin) {
                     "serialization" -> {
                         appendLine("  add(\"commonMainApi\", \"org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.0\")")
