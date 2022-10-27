@@ -6,7 +6,7 @@ import com.soywiz.kproject.util.*
 import org.gradle.api.initialization.*
 import java.io.*
 
-fun normalizePath(path: String): String = File(path).normalize().toString()
+fun normalizePath(path: String): String = File(path).normalize().toString().replace("\\", "/")
 fun ensureRepo(repo: String): String = normalizePath(repo).also { if (it.count { it == '/' } != 1) error("Invalid repo '$repo'") }
 fun getKProjectDir(): File = File("${System.getProperty("user.home")}/.kproject").also { it.mkdirs() }
 operator fun File.get(path: String): File = File(this, path)
