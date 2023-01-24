@@ -1,0 +1,7 @@
+[versions]
+android-build-gradle-java8 = "4.2.0"
+android-build-gradle-java11 = "7.0.4"
+
+[libraries]
+android-build-gradle-java8 = { module = "com.android.tools.build:gradle", version.ref = "android-build-gradle-java8" }
+android-build-gradle-java11 = { module = "com.android.tools.build:gradle", version.ref = "android-build-gradle-java11" }

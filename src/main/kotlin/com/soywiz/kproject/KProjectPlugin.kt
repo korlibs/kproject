@@ -4,7 +4,6 @@ import com.soywiz.kproject.model.*
 import com.soywiz.kproject.util.*
 import org.gradle.api.*
 import org.gradle.api.plugins.*
-import org.gradle.kotlin.dsl.*
 import org.jetbrains.kotlin.gradle.dsl.*
 import org.jetbrains.kotlin.gradle.plugin.*
 import org.jetbrains.kotlin.gradle.plugin.mpp.*
@@ -29,11 +28,11 @@ class KProjectPlugin : Plugin<Project> {
             if (hasTarget("jvm")) {
                 jvm {
                     compilations.all {
-                        kotlinOptions.jvmTarget = "1.8"
+                        it.kotlinOptions.jvmTarget = "1.8"
                     }
                     //withJava()
-                    testRuns["test"].executionTask.configure {
-                        useJUnitPlatform()
+                    testRuns.maybeCreate("test").executionTask.configure {
+                        it.useJUnitPlatform()
                     }
                 }
             }
@@ -42,7 +41,7 @@ class KProjectPlugin : Plugin<Project> {
                     browser {
                         commonWebpackConfig {
                             cssSupport {
-                                enabled.set(true)
+                                it.enabled.set(true)
                             }
                         }
                     }
@@ -59,7 +58,7 @@ class KProjectPlugin : Plugin<Project> {
                 iosArm64()
                 iosSimulatorArm64()
             }
-            sourceSets {
+            sourceSets.apply {
                 val common = createPair("common")
                 common.test.dependencies { implementation(kotlin("test")) }
                 val concurrent = createPair("concurrent")

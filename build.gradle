@@ -5,13 +5,12 @@ buildscript {
         maven { url = uri("https://plugins.gradle.org/m2/") }
     }
     dependencies {
-        classpath("com.gradle.publish:plugin-publish-plugin:$gradlePublishPluginVersion")
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
+        classpath("com.gradle.publish:plugin-publish-plugin:1.1.0")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.8.0")
     }
 }
 
 plugins {
-    id "org.gradle.kotlin.kotlin-dsl" version "2.3.3"
     id "java-gradle-plugin"
 }
 
@@ -27,6 +26,7 @@ repositories {
 }
 
 String forcedVersion = System.getenv('FORCED_VERSION')
+def isJava8or9 = System.getProperty("java.version").startsWith("1.8") || System.getProperty("java.version").startsWith("9")
 
 if (forcedVersion != null) {
     allprojects {
@@ -52,19 +52,25 @@ if (signingSecretKeyRingFile != null || signingKey != null) {
 }
 
 dependencies {
-    testImplementation("junit:junit:$junitVersion")
-    testImplementation("org.jetbrains.kotlin:kotlin-test")
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
-    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin")
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("org.jetbrains.kotlin:kotlin-test:1.8.0")
+
+
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.0")
+    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.8.0")
+    if (isJava8or9) {
+        implementation(libs.android.build.gradle.java8)
+    } else {
+        implementation(libs.android.build.gradle.java11)
+    }
     //implementation("org.eclipse.jgit:org.eclipse.jgit:6.3.0.202209071007-r")
     implementation("org.eclipse.jgit:org.eclipse.jgit:5.13.0.202109080827-r")
-    implementation("com.fasterxml.jackson.core:jackson-databind:2.13.4")
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.13.4")
-    //implementation("org.yaml:snakeyaml:1.33")
-    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.13.4")
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.14.0")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.14.0")
+    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.14.0")
 
-    implementation(gradleApi())
-    implementation(localGroovy())
+    //implementation(gradleApi())
+    //implementation(localGroovy())
 }
 
 
