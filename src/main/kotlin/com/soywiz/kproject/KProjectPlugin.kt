@@ -41,7 +41,9 @@ class KProjectPlugin : Plugin<Project> {
                 js(KotlinJsCompilerType.IR) {
                     browser {
                         commonWebpackConfig {
-                            cssSupport.enabled = true
+                            cssSupport {
+                                enabled.set(true)
+                            }
                         }
                     }
                 }
