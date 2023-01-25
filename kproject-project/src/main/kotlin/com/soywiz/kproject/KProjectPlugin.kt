@@ -21,7 +21,10 @@ class KProjectPlugin : Plugin<Project> {
         val kprojectYml = File(project.projectDir, "kproject.yml")
         val kproject = if (kprojectYml.exists()) KProject.load(kprojectYml, KSet(File("modules")), true) else null
 
-        fun hasTarget(name: KProjectTarget): Boolean = kproject?.hasTarget(name) ?: true
+        fun hasTarget(name: KProjectTarget): Boolean {
+            if (name.isKotlinNative && isWindowsOrLinuxArm) return false
+            return kproject?.hasTarget(name) ?: true
+        }
 
         kotlin.apply {
             metadata()
@@ -47,6 +50,13 @@ class KProjectPlugin : Plugin<Project> {
                     }
                 }
             }
+            //println(isWindows)
+            //println(isLinux)
+            //println(isArm)
+            //println(isWindowsOrLinuxArm)
+            //for (target in KProjectTarget.values()) {
+            //    println("target=$target, has=${hasTarget(target)}")
+            //}
             if (hasTarget(KProjectTarget.DESKTOP)) {
                 macosArm64()
                 macosX64()
