@@ -100,6 +100,22 @@ data class KGradleDependency(
     }
 }
 
+enum class KProjectTarget(
+    val bname: String,
+) {
+    JVM("jvm"),
+    JS("js"),
+    ANDROID("android"),
+    DESKTOP("desktop"),
+    MOBILE("mobile");
+
+    val isKotlinNative: Boolean get() = this == DESKTOP || this == MOBILE
+    val isJvm: Boolean get() = this == JVM
+    val isAndroid: Boolean get() = this == ANDROID
+    val isJvmOrAndroid: Boolean get() = this == JVM || this == ANDROID
+    val isJs: Boolean get() = this == JS
+}
+
 data class KProject(
     val name: String? = null,
     val version: String = "unknown",
@@ -115,9 +131,10 @@ data class KProject(
     val dependenciesNotNull get() = dependencies ?: emptyList()
     val targetsNotNull get() = targets ?: emptyList()
 
-    fun hasTarget(target: String): Boolean {
+    fun hasTarget(target: KProjectTarget): Boolean {
+        if (target.isKotlinNative && isWindowsOrLinuxArm) return false
         if ("all" in this.targetsNotNull) return true
-        return target in targetsNotNull
+        return target.bname in targetsNotNull
     }
 
     internal lateinit var file: File

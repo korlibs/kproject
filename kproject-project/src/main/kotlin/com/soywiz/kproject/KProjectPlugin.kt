@@ -21,11 +21,11 @@ class KProjectPlugin : Plugin<Project> {
         val kprojectYml = File(project.projectDir, "kproject.yml")
         val kproject = if (kprojectYml.exists()) KProject.load(kprojectYml, KSet(File("modules")), true) else null
 
-        fun hasTarget(name: String): Boolean = kproject?.hasTarget(name) ?: true
+        fun hasTarget(name: KProjectTarget): Boolean = kproject?.hasTarget(name) ?: true
 
         kotlin.apply {
             metadata()
-            if (hasTarget("jvm")) {
+            if (hasTarget(KProjectTarget.JVM)) {
                 jvm {
                     compilations.all {
                         it.kotlinOptions.jvmTarget = "1.8"
@@ -36,7 +36,7 @@ class KProjectPlugin : Plugin<Project> {
                     }
                 }
             }
-            if (hasTarget("js")) {
+            if (hasTarget(KProjectTarget.JS)) {
                 js(KotlinJsCompilerType.IR) {
                     browser {
                         commonWebpackConfig {
@@ -47,13 +47,13 @@ class KProjectPlugin : Plugin<Project> {
                     }
                 }
             }
-            if (hasTarget("desktop") && !isWindowsOrLinuxArm) {
+            if (hasTarget(KProjectTarget.DESKTOP)) {
                 macosArm64()
                 macosX64()
                 mingwX64()
                 linuxX64()
             }
-            if (hasTarget("mobile") && !isWindowsOrLinuxArm) {
+            if (hasTarget(KProjectTarget.MOBILE)) {
                 iosX64()
                 iosArm64()
                 iosSimulatorArm64()
@@ -63,26 +63,28 @@ class KProjectPlugin : Plugin<Project> {
                 common.test.dependencies { implementation(kotlin("test")) }
                 val concurrent = createPair("concurrent")
                 val jvmAndroid = createPair("jvmAndroid").dependsOn(concurrent)
-                if (hasTarget("jvm")) {
+                if (hasTarget(KProjectTarget.JVM)) {
                     val jvm = createPair("jvm").dependsOn(jvmAndroid)
                 }
-                if (hasTarget("js")) {
+                if (hasTarget(KProjectTarget.JS)) {
                     val js = createPair("js")
                 }
-                val native = createPair("native").dependsOn(concurrent)
-                val posix = createPair("posix").dependsOn(native)
-                val apple = createPair("apple").dependsOn(posix)
-                val macos = createPair("macos").dependsOn(apple)
-                if (hasTarget("desktop")) {
-                    createPair("macosX64").dependsOn(macos)
-                    createPair("macosArm64").dependsOn(macos)
-                    val linux = createPair("linux").dependsOn(posix)
-                    createPair("linuxX64").dependsOn(linux)
-                }
-                if (hasTarget("mobile")) {
-                    val ios = createPair("ios").dependsOn(apple)
-                    createPair("iosArm64").dependsOn(ios)
-                    createPair("iosSimulatorArm64").dependsOn(ios)
+                if (hasTarget(KProjectTarget.DESKTOP) || hasTarget(KProjectTarget.MOBILE)) {
+                    val native = createPair("native").dependsOn(concurrent)
+                    val posix = createPair("posix").dependsOn(native)
+                    val apple = createPair("apple").dependsOn(posix)
+                    val macos = createPair("macos").dependsOn(apple)
+                    if (hasTarget(KProjectTarget.DESKTOP)) {
+                        createPair("macosX64").dependsOn(macos)
+                        createPair("macosArm64").dependsOn(macos)
+                        val linux = createPair("linux").dependsOn(posix)
+                        createPair("linuxX64").dependsOn(linux)
+                    }
+                    if (hasTarget(KProjectTarget.MOBILE)) {
+                        val ios = createPair("ios").dependsOn(apple)
+                        createPair("iosArm64").dependsOn(ios)
+                        createPair("iosSimulatorArm64").dependsOn(ios)
+                    }
                 }
             }
             //println("KProjectPlugin: $project")
