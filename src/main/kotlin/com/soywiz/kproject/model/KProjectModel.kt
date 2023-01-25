@@ -1,6 +1,5 @@
 package com.soywiz.kproject.model
 
-import com.fasterxml.jackson.annotation.JsonIgnore
 import com.soywiz.kproject.git.*
 import com.soywiz.kproject.util.*
 import org.gradle.api.initialization.*
@@ -120,9 +119,9 @@ data class KProject(
         return target in targetsNotNull
     }
 
-    @JsonIgnore internal lateinit var file: File
-    @JsonIgnore internal lateinit var settings: KSet
-    @JsonIgnore internal var root: Boolean = false
+    internal lateinit var file: File
+    internal lateinit var settings: KSet
+    internal var root: Boolean = false
 
     val rname: String get() = name ?: file.name.substringBefore('.').takeIf { it.isNotEmpty() } ?: file.parentFile.name
 
