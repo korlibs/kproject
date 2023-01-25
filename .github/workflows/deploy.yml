@@ -24,8 +24,9 @@ jobs:
           java-version: 1.8
       - run: chmod +x gradlew
       - run: ./gradlew check
-      - run: ./gradlew publishAllPublicationsToMavenLocal # tries to cache all the operations so uploading runs faster
       - run: ./gradlew publishAllPublicationsToMavenRepository
+        env:
+          START_STAGED_REPOSITORY: true
       #- run: ./gradlew publishMavenPublicationToMavenRepository
       #- run: ./gradlew publishKprojectPluginMarkerMavenPublicationToMavenRepository
       #- run: ./gradlew publishKprojectRootPluginMarkerMavenPublicationToMavenRepository
