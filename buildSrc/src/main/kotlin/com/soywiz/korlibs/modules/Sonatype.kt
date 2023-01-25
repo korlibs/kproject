@@ -9,7 +9,9 @@ import java.util.*
 val Project.customMavenUser: String? get() = System.getenv("KORLIBS_CUSTOM_MAVEN_USER") ?: rootProject.findProperty("KORLIBS_CUSTOM_MAVEN_USER")?.toString()
 val Project.customMavenPass: String? get() = System.getenv("KORLIBS_CUSTOM_MAVEN_PASS") ?: rootProject.findProperty("KORLIBS_CUSTOM_MAVEN_PASS")?.toString()
 val Project.customMavenUrl: String? get() = System.getenv("KORLIBS_CUSTOM_MAVEN_URL") ?: rootProject.findProperty("KORLIBS_CUSTOM_MAVEN_URL")?.toString()
-val Project.stagedRepositoryId: String? get() = System.getenv("stagedRepositoryId") ?: rootProject.findProperty("stagedRepositoryId")?.toString()
+val Project.stagedRepositoryId: String? get() =
+    File(rootProject.buildDir, "stagedRepositoryId.ref").takeIf { it.exists() }?.readText()
+        ?: System.getenv("stagedRepositoryId") ?: rootProject.findProperty("stagedRepositoryId")?.toString()
 
 val Project.sonatypePublishUserNull: String? get() = (System.getenv("SONATYPE_USERNAME") ?: rootProject.findProperty("SONATYPE_USERNAME")?.toString() ?: project.findProperty("sonatypeUsername")?.toString())
 val Project.sonatypePublishPasswordNull: String? get() = (System.getenv("SONATYPE_PASSWORD") ?: rootProject.findProperty("SONATYPE_PASSWORD")?.toString() ?: project.findProperty("sonatypePassword")?.toString())
@@ -17,13 +19,16 @@ val Project.sonatypePublishPasswordNull: String? get() = (System.getenv("SONATYP
 val Project.sonatypePublishUser get() = sonatypePublishUserNull ?: error("Can't get SONATYPE_USERNAME/sonatypeUsername")
 val Project.sonatypePublishPassword get() = sonatypePublishPasswordNull ?: error("Can't get SONATYPE_PASSWORD/sonatypePassword")
 
+val DEFAULT_GROUP_ID = "com.soywiz"
+
 fun Project.configureMavenCentralRelease() {
 	if (rootProject.tasks.findByName("releaseMavenCentral") == null) {
         rootProject.tasks.createThis<Task>("releaseMavenCentral").also { task ->
 			task.doLast {
-				if (!Sonatype.fromProject(rootProject).releaseGroupId(rootProject.group.toString())) {
+				if (!Sonatype.fromProject(rootProject).releaseGroupId(DEFAULT_GROUP_ID)) {
 					error("Can't promote artifacts. Check log for details")
 				}
+                File(rootProject.buildDir, "stagedRepositoryId.ref").delete()
 			}
 		}
 	}
@@ -41,12 +46,16 @@ fun Project.configureMavenCentralRelease() {
     if (rootProject.tasks.findByName("startReleasingMavenCentral") == null) {
         rootProject.tasks.createThis<Task>("startReleasingMavenCentral").also { task ->
             task.doLast {
+                println("startReleasingMavenCentral:")
                 val sonatype = Sonatype.fromProject(rootProject)
-                val profileId = sonatype.findProfileIdByGroupId("com.soywiz")
+                println("- getting profileId")
+                val profileId = sonatype.findProfileIdByGroupId(DEFAULT_GROUP_ID)
+                println("- getting stagedRepositoryId, profileId=$profileId")
                 val stagedRepositoryId = sonatype.startStagedRepository(profileId)
                 println("profileId=$profileId")
                 println("stagedRepositoryId=$stagedRepositoryId")
                 println("::set-output name=stagedRepositoryId::$stagedRepositoryId")
+                File(rootProject.buildDir, "stagedRepositoryId.ref").writeText(stagedRepositoryId)
             }
         }
     }
@@ -75,11 +84,11 @@ open class Sonatype(
 		@JvmStatic
 		fun main(args: Array<String>) {
 			val sonatype = fromGlobalConfig()
-			sonatype.releaseGroupId("com.soywiz.korlibs")
+			sonatype.releaseGroupId(DEFAULT_GROUP_ID)
 		}
 	}
 
-	fun releaseGroupId(groupId: String = "com.soywiz.korlibs"): Boolean {
+	fun releaseGroupId(groupId: String = DEFAULT_GROUP_ID): Boolean {
 		println("Trying to release groupId=$groupId")
 		val profileId = findProfileIdByGroupId(groupId)
 		println("Determined profileId=$profileId")

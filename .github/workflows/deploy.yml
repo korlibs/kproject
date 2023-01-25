@@ -24,10 +24,6 @@ jobs:
           java-version: 1.8
       - run: chmod +x gradlew
       - run: ./gradlew check
+      - run: ./gradlew startReleasingMavenCentral
       - run: ./gradlew publishAllPublicationsToMavenRepository
-        env:
-          START_STAGED_REPOSITORY: true
-      #- run: ./gradlew publishMavenPublicationToMavenRepository
-      #- run: ./gradlew publishKprojectPluginMarkerMavenPublicationToMavenRepository
-      #- run: ./gradlew publishKprojectRootPluginMarkerMavenPublicationToMavenRepository
-      #- run: ./gradlew publishKprojectSettingsPluginMarkerMavenPublicationToMavenRepository
+      - run: ./gradlew releaseMavenCentral

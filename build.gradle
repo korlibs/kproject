@@ -1,4 +1,5 @@
 import com.soywiz.korlibs.modules.Sonatype
+import com.soywiz.korlibs.modules.SonatypeKt
 import org.gradle.api.internal.artifacts.repositories.DefaultMavenArtifactRepository
 
 buildscript {
@@ -79,11 +80,15 @@ subprojects {
                         username = sonatypePublishUser
                         password = sonatypePublishPassword
                     }
-                    if (version.toString().contains("-SNAPSHOT")) {
+                    File stagedRepositoryIdRef = new File(rootProject.buildDir, "stagedRepositoryId.ref")
+                    if (stagedRepositoryIdRef.exists()) {
+                        url = uri("https://oss.sonatype.org/service/local/staging/deployByRepositoryId/${stagedRepositoryIdRef.text.trim()}/")
+                    } else if (version.toString().contains("-SNAPSHOT")) {
                         url = uri("https://oss.sonatype.org/content/repositories/snapshots/")
                     } else {
                         url = uri("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
                     }
+                    println("Repository...$url")
                 }
             }
         }
@@ -124,22 +129,4 @@ subprojects {
     }
 }
 
-if (System.getenv("START_STAGED_REPOSITORY") == "true") {
-    println("START_STAGED_REPOSITORY=true")
-    Sonatype sonatype = Sonatype.fromProject(rootProject)
-    println("- findProfileIdByGroupId")
-    String profileId = sonatype.findProfileIdByGroupId("com.soywiz")
-    println("- startStagedRepository: $profileId")
-    String stagedRepositoryId = sonatype.startStagedRepository(profileId)
-    println("- stagedRepositoryId: $stagedRepositoryId")
-    println("- updating maven repos")
-    String newRepoUrl = "https://oss.sonatype.org/service/local/staging/deployByRepositoryId/${stagedRepositoryId}/"
-    subprojects {
-        def mavenRepos = publishing.repositories.findAll { it instanceof DefaultMavenArtifactRepository }
-        mavenRepos.forEach {
-            println("- ${it.url} -> ${newRepoUrl}")
-            it.url = newRepoUrl
-        }
-        //println((DefaultMavenArtifactRepository[])publishing.repositories)
-    }
-}
+SonatypeKt.configureMavenCentralRelease(rootProject)
