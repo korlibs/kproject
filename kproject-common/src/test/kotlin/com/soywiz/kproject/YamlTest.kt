@@ -167,10 +167,14 @@ class YamlTest {
             Yaml.decode(yamlStr)
         )
         assertEquals(
-            mapOf(
-                "layout" to null
-            ),
+            "layout:null",
             Yaml.decode("layout:null")
+        )
+        assertEquals(
+            mapOf(
+                "layout" to null,
+            ),
+            Yaml.decode("layout: null")
         )
     }
 
