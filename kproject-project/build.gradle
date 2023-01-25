@@ -1,0 +1,34 @@
+//def isJava8or9 = System.getProperty("java.version").startsWith("1.8") || System.getProperty("java.version").startsWith("9")
+
+dependencies {
+    implementation(project(":kproject-common"))
+    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.8.0")
+    //if (isJava8or9) {
+    //    implementation(libs.android.build.gradle.java8)
+    //} else {
+    //    implementation(libs.android.build.gradle.java11)
+    //}
+}
+
+pluginBundle {
+    website = "https://github.com/korlibs/kproject"
+    vcsUrl = "https://github.com/korlibs/kproject"
+    tags = ["kproject", "git"]
+}
+
+gradlePlugin {
+    plugins {
+        kproject {
+            id = 'com.soywiz.kproject'
+            displayName = 'kproject'
+            description = 'Allows to use sourcecode & git-based dependencies'
+            implementationClass = 'com.soywiz.kproject.KProjectPlugin'
+        }
+        kprojectRoot {
+            id = 'com.soywiz.kproject.root'
+            displayName = 'kproject'
+            description = 'Allows to use sourcecode & git-based dependencies'
+            implementationClass = 'com.soywiz.kproject.KProjectRootPlugin'
+        }
+    }
+}

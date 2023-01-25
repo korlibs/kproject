@@ -1,1 +1,5 @@
 rootProject.name = "kproject"
+
+include(":kproject-common")
+include(":kproject-project")
+include(":kproject-settings")

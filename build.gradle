@@ -10,158 +10,111 @@ buildscript {
     }
 }
 
-plugins {
-    id "java-gradle-plugin"
-}
-
-apply plugin: "com.gradle.plugin-publish"
-apply plugin: "kotlin"
-apply plugin: 'maven-publish'
-
-repositories {
-    mavenLocal()
-    mavenCentral()
-    google()
-    maven { url = uri("https://plugins.gradle.org/m2/") }
-}
-
 String forcedVersion = System.getenv('FORCED_VERSION')
-def isJava8or9 = System.getProperty("java.version").startsWith("1.8") || System.getProperty("java.version").startsWith("9")
 
-if (forcedVersion != null) {
-    allprojects {
-        this.version = forcedVersion?.replace("refs/tags/v", "")?.replace("v", "") ?: project.version
+subprojects {
+    apply plugin: "java-gradle-plugin"
+    apply plugin: "com.gradle.plugin-publish"
+    apply plugin: "kotlin"
+    apply plugin: 'maven-publish'
+
+    repositories {
+        mavenLocal()
+        mavenCentral()
+        google()
+        maven { url = uri("https://plugins.gradle.org/m2/") }
     }
-}
 
-def signingSecretKeyRingFile = System.getenv("ORG_GRADLE_PROJECT_signingSecretKeyRingFile") ?: project.findProperty("signing.secretKeyRingFile")?.toString()
+    if (forcedVersion != null) {
+        version = forcedVersion?.replace("refs/tags/v", "")?.replace("v", "") ?: project.version
+    }
+
+    def signingSecretKeyRingFile = System.getenv("ORG_GRADLE_PROJECT_signingSecretKeyRingFile") ?: project.findProperty("signing.secretKeyRingFile")?.toString()
 
 // gpg --armor --export-secret-keys foobar@example.com | awk 'NR == 1 { print "signing.signingKey=" } 1' ORS='\\n'
-def signingKey = System.getenv("ORG_GRADLE_PROJECT_signingKey") ?: project.findProperty("signing.signingKey")?.toString()
-def signingPassword = System.getenv("ORG_GRADLE_PROJECT_signingPassword") ?: project.findProperty("signing.password")?.toString()
+    def signingKey = System.getenv("ORG_GRADLE_PROJECT_signingKey") ?: project.findProperty("signing.signingKey")?.toString()
+    def signingPassword = System.getenv("ORG_GRADLE_PROJECT_signingPassword") ?: project.findProperty("signing.password")?.toString()
 
-if (signingSecretKeyRingFile != null || signingKey != null) {
-    apply plugin: 'signing'
-    signing {
-        required { !project.version.endsWith('-SNAPSHOT') }
-        if (signingKey != null) {
-            useInMemoryPgpKeys(signingKey, signingPassword)
-        }
-        sign(publishing.publications)
-    }
-}
-
-dependencies {
-    testImplementation("junit:junit:4.13.2")
-    testImplementation("org.jetbrains.kotlin:kotlin-test:1.8.0")
-
-
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.0")
-    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.8.0")
-    if (isJava8or9) {
-        implementation(libs.android.build.gradle.java8)
-    } else {
-        implementation(libs.android.build.gradle.java11)
-    }
-    //implementation("org.eclipse.jgit:org.eclipse.jgit:6.3.0.202209071007-r")
-    implementation("org.eclipse.jgit:org.eclipse.jgit:5.13.1.202206130422-r")
-
-    //implementation(gradleApi())
-    //implementation(localGroovy())
-}
-
-
-pluginBundle {
-    website = "https://github.com/korlibs/kproject"
-    vcsUrl = "https://github.com/korlibs/kproject"
-    tags = ["kproject", "git"]
-}
-
-gradlePlugin {
-    plugins {
-        kproject {
-            id = 'com.soywiz.kproject'
-            displayName = 'kproject'
-            description = 'Allows to use sourcecode & git-based dependencies'
-            implementationClass = 'com.soywiz.kproject.KProjectPlugin'
-        }
-        kprojectRoot {
-            id = 'com.soywiz.kproject.root'
-            displayName = 'kproject'
-            description = 'Allows to use sourcecode & git-based dependencies'
-            implementationClass = 'com.soywiz.kproject.KProjectRootPlugin'
-        }
-        kprojectSettings {
-            id = 'com.soywiz.kproject.settings'
-            displayName = 'kproject-settings'
-            description = 'Allows to use sourcecode & git-based dependencies'
-            implementationClass = 'com.soywiz.kproject.KProjectSettingsPlugin'
+    if (signingSecretKeyRingFile != null || signingKey != null) {
+        apply plugin: 'signing'
+        signing {
+            required { !project.version.endsWith('-SNAPSHOT') }
+            if (signingKey != null) {
+                useInMemoryPgpKeys(signingKey, signingPassword)
+            }
+            sign(publishing.publications)
         }
     }
-}
 
-def sonatypePublishUser = (System.getenv("SONATYPE_USERNAME") ?: rootProject.findProperty("SONATYPE_USERNAME")?.toString() ?: project.findProperty("sonatypeUsername")?.toString())
-def sonatypePublishPassword = (System.getenv("SONATYPE_PASSWORD") ?: rootProject.findProperty("SONATYPE_PASSWORD")?.toString() ?: project.findProperty("sonatypePassword")?.toString())
+    dependencies {
+        testImplementation("junit:junit:4.13.2")
+        testImplementation("org.jetbrains.kotlin:kotlin-test:1.8.0")
+        implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.0")
+    }
 
-if (sonatypePublishUser == null || sonatypePublishPassword == null) {
-    println("Required sonatypeUsername and sonatypePassword in ~/.gradle/gradle.properties")
-}
+    def sonatypePublishUser = (System.getenv("SONATYPE_USERNAME") ?: rootProject.findProperty("SONATYPE_USERNAME")?.toString() ?: project.findProperty("sonatypeUsername")?.toString())
+    def sonatypePublishPassword = (System.getenv("SONATYPE_PASSWORD") ?: rootProject.findProperty("SONATYPE_PASSWORD")?.toString() ?: project.findProperty("sonatypePassword")?.toString())
 
-task sourcesJar(type: Jar) {
-    archiveClassifier.set("sources")
-    from sourceSets.main.allSource
-}
+    if (sonatypePublishUser == null || sonatypePublishPassword == null) {
+        println("Required sonatypeUsername and sonatypePassword in ~/.gradle/gradle.properties")
+    }
 
-task javadocJar(type: Jar) {
-    archiveClassifier.set("javadoc")
-}
+    task sourcesJar(type: Jar) {
+        archiveClassifier.set("sources")
+        from sourceSets.main.allSource
+    }
 
-publishing {
-    repositories {
-        if (sonatypePublishUser && sonatypePublishPassword) {
-            maven {
-                credentials {
-                    username = sonatypePublishUser
-                    password = sonatypePublishPassword
-                }
-                if (version.toString().contains("-SNAPSHOT")) {
-                    url = uri("https://oss.sonatype.org/content/repositories/snapshots/")
-                } else {
-                    url = uri("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
+    task javadocJar(type: Jar) {
+        archiveClassifier.set("javadoc")
+    }
+
+    publishing {
+        repositories {
+            if (sonatypePublishUser && sonatypePublishPassword) {
+                maven {
+                    credentials {
+                        username = sonatypePublishUser
+                        password = sonatypePublishPassword
+                    }
+                    if (version.toString().contains("-SNAPSHOT")) {
+                        url = uri("https://oss.sonatype.org/content/repositories/snapshots/")
+                    } else {
+                        url = uri("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
+                    }
                 }
             }
         }
-    }
-    publications {
-        maven(MavenPublication) {
-            groupId = project.group
-            artifactId = project.name
-            version = project.version
+        publications {
+            maven(MavenPublication) {
+                groupId = project.group
+                artifactId = project.name
+                version = project.version
 
-            from components.java
+                from components.java
+            }
         }
-    }
-    afterEvaluate {
-        publications.withType(MavenPublication) {
-            pom {
-                name = project.name
-                description = project.property("project.description")
-                url = project.property("project.scm.url")
-                developers {
-                    developer {
-                        id = project.property("project.author.id")
-                        name = project.property("project.author.name")
-                        email = project.property("project.author.email")
-                    }
-                }
-                licenses {
-                    license {
-                        name = project.property("project.license.name")
-                        url = project.property("project.license.url")
-                    }
-                }
-                scm {
+        afterEvaluate {
+            publications.withType(MavenPublication) {
+                pom {
+                    name = project.name
+                    description = project.property("project.description")
                     url = project.property("project.scm.url")
+                    developers {
+                        developer {
+                            id = project.property("project.author.id")
+                            name = project.property("project.author.name")
+                            email = project.property("project.author.email")
+                        }
+                    }
+                    licenses {
+                        license {
+                            name = project.property("project.license.name")
+                            url = project.property("project.license.url")
+                        }
+                    }
+                    scm {
+                        url = project.property("project.scm.url")
+                    }
                 }
             }
         }

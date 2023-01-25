@@ -2,6 +2,7 @@ package com.soywiz.kproject.model
 
 import com.soywiz.kproject.git.*
 import com.soywiz.kproject.util.*
+import com.soywiz.kproject.version.*
 import org.gradle.api.initialization.*
 import java.io.*
 
@@ -184,7 +185,7 @@ data class KProject(
                 }
             }
             appendLine("plugins {")
-            appendLine("  id(\"com.soywiz.kproject\")")
+            appendLine("  id(\"com.soywiz.kproject\") version \"${KProjectVersion.VERSION}\"")
             for (plugin in this@KProject.pluginsNotNull) {
                 when (plugin) {
                     "serialization" -> {
