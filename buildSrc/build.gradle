@@ -1,0 +1,25 @@
+plugins {
+    id "publishing"
+    id "maven-publish"
+    id "signing"
+    id "org.jetbrains.kotlin.jvm" version libs.versions.kotlin
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+    google()
+    maven { url = uri("https://plugins.gradle.org/m2/") }
+    maven { url = uri("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/temporary") }
+    maven { url = uri("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev") }
+    maven { url = uri("https://maven.pkg.jetbrains.space/public/p/kotlinx-coroutines/maven") }
+    maven { url = uri("https://oss.sonatype.org/content/repositories/snapshots/") }
+}
+
+dependencies {
+    implementation(libs.gson)
+}
+
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
+    kotlinOptions.suppressWarnings = true
+}

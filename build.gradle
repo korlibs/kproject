@@ -1,3 +1,6 @@
+import com.soywiz.korlibs.modules.Sonatype
+import org.gradle.api.internal.artifacts.repositories.DefaultMavenArtifactRepository
+
 buildscript {
     repositories {
         mavenLocal()
@@ -6,11 +9,28 @@ buildscript {
     }
     dependencies {
         classpath("com.gradle.publish:plugin-publish-plugin:1.1.0")
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.8.0")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:${libs.versions.kotlin.get()}")
     }
 }
 
 String forcedVersion = System.getenv('FORCED_VERSION')
+
+tasks.maybeCreate("sonatypeStartStagedRepository").doFirst {
+    Sonatype sonatype = Sonatype.fromProject(rootProject)
+    String profileId = sonatype.findProfileIdByGroupId("com.soywiz")
+    String stagedRepositoryId = sonatype.startStagedRepository(profileId)
+    println("stagedRepositoryId=$stagedRepositoryId")
+    String newRepoUrl = "https://oss.sonatype.org/service/local/staging/deployByRepositoryId/${stagedRepositoryId}/"
+    subprojects {
+        def mavenRepos = publishing.repositories.findAll { it instanceof DefaultMavenArtifactRepository }
+        mavenRepos.forEach {
+            it.url = newRepoUrl
+        }
+        //println((DefaultMavenArtifactRepository[])publishing.repositories)
+    }
+}
+
+tasks.maybeCreate("publishAllPublicationsToMavenRepository").dependsOn("sonatypeStartStagedRepository")
 
 subprojects {
     apply plugin: "java-gradle-plugin"
@@ -48,8 +68,8 @@ subprojects {
 
     dependencies {
         testImplementation("junit:junit:4.13.2")
-        testImplementation("org.jetbrains.kotlin:kotlin-test:1.8.0")
-        implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.0")
+        testImplementation("org.jetbrains.kotlin:kotlin-test:${libs.versions.kotlin.get()}")
+        implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:${libs.versions.kotlin.get()}")
     }
 
     def sonatypePublishUser = (System.getenv("SONATYPE_USERNAME") ?: rootProject.findProperty("SONATYPE_USERNAME")?.toString() ?: project.findProperty("sonatypeUsername")?.toString())
@@ -71,7 +91,7 @@ subprojects {
     publishing {
         repositories {
             if (sonatypePublishUser && sonatypePublishPassword) {
-                maven {
+                def mvn = maven {
                     credentials {
                         username = sonatypePublishUser
                         password = sonatypePublishPassword
