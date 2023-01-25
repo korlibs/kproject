@@ -64,10 +64,10 @@ dependencies {
         implementation(libs.android.build.gradle.java11)
     }
     //implementation("org.eclipse.jgit:org.eclipse.jgit:6.3.0.202209071007-r")
-    implementation("org.eclipse.jgit:org.eclipse.jgit:5.13.0.202109080827-r")
-    implementation("com.fasterxml.jackson.core:jackson-databind:2.14.0")
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.14.0")
-    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.14.0")
+    implementation("org.eclipse.jgit:org.eclipse.jgit:5.13.1.202206130422-r")
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.14.1")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.14.1")
+    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.14.1")
 
     //implementation(gradleApi())
     //implementation(localGroovy())

@@ -21,7 +21,9 @@ object YAML {
 
 fun KProject.Companion.load(file: File, settings: KSet, root: Boolean): KProject {
     return settings.projectMap.getOrPut(file.canonicalFile) {
-        YAML.mapper.readValue<KProject>(file.readText()).also {
+        val content = file.readText()
+        if (content.contains("!!")) error("!! can't appear in YAML for security reasons until snakeyml supports disabling specifying classes CVE-2022-1471")
+        YAML.mapper.readValue<KProject>(content).also {
             it.root = root
             it.file = file.canonicalFile
             it.settings = settings
