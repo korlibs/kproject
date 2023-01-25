@@ -47,13 +47,13 @@ class KProjectPlugin : Plugin<Project> {
                     }
                 }
             }
-            if (hasTarget("desktop")) {
+            if (hasTarget("desktop") && !isWindowsOrLinuxArm) {
                 macosArm64()
                 macosX64()
                 mingwX64()
                 linuxX64()
             }
-            if (hasTarget("mobile")) {
+            if (hasTarget("mobile") && !isWindowsOrLinuxArm) {
                 iosX64()
                 iosArm64()
                 iosSimulatorArm64()
