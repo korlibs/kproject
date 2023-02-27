@@ -240,6 +240,11 @@ data class KProject(
         }
         //this.settings.addDeps(buildGradleText)
         java.io.File(sourceDirectory, "build.gradle").writeTextIfNew(buildGradleText)
-        java.io.File(sourceDirectory, ".gitignore").writeTextIfNew(listOf("build").joinToString("\n"))
+        java.io.File(sourceDirectory, ".gitignore").writeTextIfNew(listOf(
+            "/.idea",
+            "/.gradle",
+            "/build",
+            "/build.gradle"
+        ).joinToString("\n"))
     }
 }
