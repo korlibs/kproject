@@ -1,11 +1,13 @@
 dependencies {
     implementation(project(":kproject-common"))
 }
+
 pluginBundle {
     website = "https://github.com/korlibs/kproject"
     vcsUrl = "https://github.com/korlibs/kproject"
     tags = ["kproject", "git"]
 }
+
 gradlePlugin {
     plugins {
         kprojectSettings {

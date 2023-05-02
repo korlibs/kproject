@@ -1,6 +1,4 @@
-import com.soywiz.korlibs.modules.Sonatype
 import com.soywiz.korlibs.modules.SonatypeKt
-import org.gradle.api.internal.artifacts.repositories.DefaultMavenArtifactRepository
 
 buildscript {
     repositories {
@@ -9,7 +7,7 @@ buildscript {
         maven { url = uri("https://plugins.gradle.org/m2/") }
     }
     dependencies {
-        classpath("com.gradle.publish:plugin-publish-plugin:1.1.0")
+        classpath("com.gradle.publish:plugin-publish-plugin:1.2.0")
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:${libs.versions.kotlin.get()}")
     }
 }

@@ -2,7 +2,7 @@
 
 dependencies {
     implementation(project(":kproject-common"))
-    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.8.0")
+    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.8.21")
     //if (isJava8or9) {
     //    implementation(libs.android.build.gradle.java8)
     //} else {
