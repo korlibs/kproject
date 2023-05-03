@@ -4,7 +4,12 @@ import groovy.lang.*
 import java.lang.reflect.*
 import kotlin.math.*
 
-val Any?.dyn: Dyn get() = Dyn(this)
+val Any?.dyn: Dyn get() = if (this is Dyn) this else Dyn(this)
+val Dyn.dyn: Dyn get() = this
+
+fun <R> Dyn.orNull(block: (Dyn) -> R): R? {
+    return if (this.isNotNull) block(this) else null
+}
 
 @Suppress("DEPRECATION")
 inline class Dyn(val value: Any?) : Comparable<Dyn> {

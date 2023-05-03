@@ -6,8 +6,29 @@ import org.eclipse.jgit.api.*
 import org.eclipse.jgit.api.errors.*
 import org.eclipse.jgit.errors.*
 import org.eclipse.jgit.lib.*
+import org.eclipse.jgit.revwalk.*
+import org.eclipse.jgit.treewalk.*
 import java.io.*
 import java.util.zip.*
+
+fun Git.readFile(ref: String, filePath: String): ByteArray {
+    val repo = repository
+    RevWalk(repo).use { walk ->
+        val commit: RevCommit = walk.parseCommit(repo.resolve(ref))
+        val tree: RevTree = commit.tree
+        TreeWalk.forPath(repo, filePath.trimStart('/'), tree).use { treeWalk ->
+            if (treeWalk != null) {
+                val objectId: ObjectId = treeWalk.getObjectId(0)
+                val loader = repo.open(objectId)
+
+                // Read the file content as a string
+                return loader.bytes
+            } else {
+                error("Can't find file '$filePath' in '$ref' in $this")
+            }
+        }
+    }
+}
 
 fun Git.countCommits(ref: String? = null): Int {
     return log()

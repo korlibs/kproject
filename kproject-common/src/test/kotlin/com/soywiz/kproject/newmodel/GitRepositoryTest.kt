@@ -1,4 +1,4 @@
-package com.soywiz.kproject.model
+package com.soywiz.kproject.newmodel
 
 import com.soywiz.kproject.git.*
 import kotlin.test.*

@@ -17,11 +17,17 @@ inline class PathInfo private constructor(val fullPath: String) {
                     else -> parts.add(part)
                 }
             }
-            if (parts.size == 1 && parts[0] == "" && fullPath.startsWith("/")) return "/"
+            if (parts.size == 1 && fullPath.startsWith("/")) return "/${parts[0]}"
             return parts.joinToString("/")
         }
     }
 
+    val parent: PathInfo get() = PathInfo(fullPath.substringBeforeLast('/', ""))
     val path: String get() = fullPath.substringBeforeLast('/', "")
     val name: String get() = fullPath.substringAfterLast('/')
+
+    fun access(path: String): PathInfo {
+        return PathInfo(normalizePath(if (path.startsWith("/")) path else this.fullPath + "/" + path))
+    }
+
 }

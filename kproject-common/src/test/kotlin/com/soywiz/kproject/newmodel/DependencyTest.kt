@@ -1,4 +1,4 @@
-package com.soywiz.kproject.model
+package com.soywiz.kproject.newmodel
 
 import com.soywiz.kproject.util.*
 import kotlin.test.*
@@ -63,9 +63,10 @@ class DependencyTest {
 
     @Test
     fun testPath() {
+        val root = MemoryFiles().root
         assertEquals(
-            FolderDependency("../korge-tiled"),
-            Dependency.parseString("../korge-tiled")
+            FileRefDependency(root["korge-tiled/kproject.yml"]),
+            Dependency.parseString("../korge-tiled", root["hello/kproject.yml"])
         )
     }
 

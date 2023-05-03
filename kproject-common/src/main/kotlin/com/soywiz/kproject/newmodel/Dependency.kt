@@ -1,15 +1,13 @@
-package com.soywiz.kproject.model
+package com.soywiz.kproject.newmodel
 
 import com.soywiz.kproject.util.*
 import java.io.*
-import kotlin.io.path.*
 
 sealed interface Dependency : Comparable<Dependency> {
     val projectName: String
     val version: Version
 
     override fun compareTo(other: Dependency): Int = version.compareTo(other.version)
-    fun kprojectFile(): File? = null
 
     companion object
 }
@@ -25,6 +23,8 @@ data class GitDependency(
     val gitWithPathAndRef by lazy { GitRepositoryWithPathAndRef(repo, path, ref) }
     override val version: Version get() = Version(ref)
     override val projectName: String get() = name
+
+    val file: GitFileRef = GitFileRef(repo, ref, path)
 
     val commitCount: Int by lazy { gitWithPathAndRef.getContent().commitCount }
 
@@ -43,25 +43,32 @@ data class MavenDependency(
     override val version: Version,
     val target: String = "common",
 ) : Dependency {
-    val coordinates: String = "$group:$name:${version.str}"
+    val coordinates: String = if (version.str.isNotBlank()) "$group:$name:${version.str}" else "$group:$name"
     override val projectName: String = "$group-$name"
 
     companion object {
         fun fromCoordinates(coordinates: String, target: String = "common"): MavenDependency {
-            val (group, name, version) = coordinates.split(':')
+            val coords = coordinates.split(':')
+            val group = coords[0]
+            val name = coords[1]
+            val version = coords.getOrNull(2) ?: ""
             return MavenDependency(group, name, Version(version), target)
         }
     }
 }
 
-data class FolderDependency(
-    val path: String,
+data class FileRefDependency(
+    val path: FileRef,
 ) : Dependency {
-    override val projectName: String = Path(path).fileName.toString()
+    override val projectName: String = when {
+        path.name.endsWith(".kproject.yml") -> path.name.removeSuffix(".kproject.yml")
+        path.name.endsWith("kproject.yml") -> path.parent().name
+        else -> path.name
+    }
     override val version: Version get() = Version("999.999.999.999")
 }
 
-fun Dependency.Companion.parseString(str: String): Dependency {
+fun Dependency.Companion.parseString(str: String, projectFile: FileRef = MemoryFileRef()): Dependency {
     try {
         val parts = str.split("::")
         val firstPart = parts.first()
@@ -69,7 +76,7 @@ fun Dependency.Companion.parseString(str: String): Dependency {
             // - git::adder::korlibs/kproject::/modules/adder::54f73b01cea9cb2e8368176ac45f2fca948e57db
             "git" -> {
                 val (_, name, coordinates, path, ref) = parts
-                return GitDependency(name, GitRepository("https://github.com/${normalizePath(coordinates)}.git"), path, ref, commit = parts.getOrNull(5), hash = parts.getOrNull(6))
+                return GitDependency(name, GitRepository("https://github.com/${coordinates.pathInfo.fullPath}.git"), path, ref, commit = parts.getOrNull(5), hash = parts.getOrNull(6))
             }
             // - maven::common::org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4
             "maven" -> {
@@ -92,7 +99,7 @@ fun Dependency.Companion.parseString(str: String): Dependency {
                 }
                 // ../korge-tiled
                 parts.size == 1 -> {
-                    return FolderDependency(firstPart)
+                    return FileRefDependency(projectFile.parent()[if (firstPart.endsWith(".kproject.yml")) firstPart else "$firstPart/kproject.yml"])
                 }
             }
         }
@@ -115,5 +122,12 @@ fun Dependency.Companion.parseString(str: String): Dependency {
         """)
     } catch (e: Throwable) {
         throw IllegalArgumentException("Invalid format for string '$str'", e)
+    }
+}
+
+fun Dependency.Companion.parseObject(any: Any?, projectFile: FileRef = MemoryFileRef()): Dependency {
+    return when (any) {
+        is String -> parseString(any, projectFile)
+        else -> TODO("Unsupported dependency $any")
     }
 }

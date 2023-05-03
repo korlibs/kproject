@@ -1,7 +1,8 @@
-package com.soywiz.kproject.model
+package com.soywiz.kproject.newmodel
 
 import com.soywiz.kproject.git.*
 import com.soywiz.kproject.internal.*
+import com.soywiz.kproject.model.*
 import com.soywiz.kproject.util.*
 import org.eclipse.jgit.api.*
 import org.eclipse.jgit.lib.*
