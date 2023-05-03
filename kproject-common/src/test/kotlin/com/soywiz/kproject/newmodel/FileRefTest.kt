@@ -35,4 +35,17 @@ class FileRefTest {
             GitFileRef(repo, "v0.1.3", "/kproject-settings/build.gradle").parent().get("../gradle/libs.versions.toml").readText().trim()
         )
     }
+
+    @Test
+    fun test() {
+        val mem = MemoryFileRef()
+        assertEquals(
+            mem["/demo2/kproject.yml"],
+            mem["/demo3.kproject.yml"].parent()["demo2/kproject.yml"]
+        )
+        assertEquals(
+            "/demo",
+            mem["/demo3.kproject.yml"][".."]["../demo"].path.fullPath
+        )
+    }
 }

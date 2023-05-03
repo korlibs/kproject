@@ -32,7 +32,7 @@ data class MemoryFileRef(val files: MemoryFiles, val path: PathInfo) : FileRef {
     val normalized: String get() = path.fullPath.trim('/')
     companion object {
         operator fun invoke(): MemoryFileRef = MemoryFiles().root
-        operator fun invoke(name: String, data: ByteArray): MemoryFileRef = MemoryFiles().set(name, data).root.get(name)
+        operator fun invoke(name: String, data: ByteArray): MemoryFileRef = MemoryFiles().set(name, data).root[name]
         operator fun invoke(data: ByteArray): MemoryFileRef = invoke("file.bin", data)
     }
 

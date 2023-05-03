@@ -7,7 +7,9 @@ inline class PathInfo private constructor(val fullPath: String) {
         operator fun invoke(str: String): PathInfo = PathInfo(normalizePath(str))
 
         fun normalizePath(fullPath: String): String {
-            val components = fullPath.replace('\\', '/').split('/')
+            val rfullPath = fullPath.replace('\\', '/')
+            val isAbsolute = rfullPath.startsWith('/')
+            val components = rfullPath.split('/')
             val parts = ArrayList<String>(components.size)
             for (part in components) {
                 when (part) {
@@ -17,8 +19,9 @@ inline class PathInfo private constructor(val fullPath: String) {
                     else -> parts.add(part)
                 }
             }
-            if (parts.size == 1 && fullPath.startsWith("/")) return "/${parts[0]}"
-            return parts.joinToString("/")
+            //if (parts.size == 1 && fullPath.startsWith("/")) return "/${parts[0]}"
+            val prep = if (isAbsolute) "/" else ""
+            return prep + parts.joinToString("/").trimStart('/')
         }
     }
 
@@ -27,7 +30,8 @@ inline class PathInfo private constructor(val fullPath: String) {
     val name: String get() = fullPath.substringAfterLast('/')
 
     fun access(path: String): PathInfo {
-        return PathInfo(normalizePath(if (path.startsWith("/")) path else this.fullPath + "/" + path))
+        val absoluteAccess = path.startsWith("/")
+        return PathInfo(normalizePath(if (absoluteAccess) path else this.fullPath + "/" + path))
     }
 
 }

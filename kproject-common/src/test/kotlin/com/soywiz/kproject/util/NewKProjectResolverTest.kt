@@ -15,6 +15,10 @@ class NewKProjectResolverTest {
             name: Ademo2
             dependencies:
               - ../demo3.kproject.yml
+              - ../demo4
+        """.trimIndent()
+        files["demo4/kproject.yml"] = """
+            name: Ademo4
         """.trimIndent()
         files["demo3.kproject.yml"] = """
             name: Ademo3
@@ -23,6 +27,16 @@ class NewKProjectResolverTest {
         """.trimIndent()
         val resolver = NewKProjectResolver()
         val mainProject = resolver.load(files["demo/kproject.yml"])
+        assertEquals(
+            """
+                demo
+                  Ademo2
+                    Ademo3
+                      <recursion detected>
+                    Ademo4
+            """.trimIndent(),
+            mainProject.dumpDependenciesToString()
+        )
         //println(mainProject)
         /*
         println("---")
@@ -36,7 +50,7 @@ class NewKProjectResolverTest {
         println("---")
         println(resolver.getAllProjects().values.joinToString("\n"))
         */
-        assertEquals(listOf("demo", "Ademo2", "Ademo3"), resolver.getProjectNames().toList())
+        assertEquals(listOf("demo", "Ademo2", "Ademo3", "Ademo4"), resolver.getProjectNames().toList())
         val paths = resolver.getAllProjects().map {
             it.key to ((it.value.dep as? FileRefDependency?)?.path as? MemoryFileRef?)?.path?.fullPath
         }.toMap()
@@ -45,6 +59,7 @@ class NewKProjectResolverTest {
             "demo" to "/demo/kproject.yml",
             "Ademo2" to "/demo2/kproject.yml",
             "Ademo3" to "/demo3.kproject.yml",
+            "Ademo4" to "/demo4/kproject.yml",
         ), paths)
     }
 }

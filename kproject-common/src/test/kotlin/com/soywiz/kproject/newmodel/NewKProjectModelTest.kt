@@ -6,7 +6,7 @@ import kotlin.test.*
 class NewKProjectModelTest {
     @Test
     fun test() {
-        println(NewKProjectModel.parseObject(Yaml.decode("""
+        val project = NewKProjectModel.parseObject(Yaml.decode("""
             name: "korge-compose"
             #targets: [jvm, desktop]
             #targets: [jvm, js, desktop, ios]
@@ -26,6 +26,10 @@ class NewKProjectModelTest {
               #- "maven::common::org.jetbrains.compose.runtime:runtime:1.3.0"
               - "maven::common::com.soywiz.korlibs.korge2:korge"
               - "maven::common::org.jetbrains.compose.runtime:runtime:1.4.0"
-        """.trimIndent())))
+        """.trimIndent()))
+
+        assertEquals("korge-compose", project.name)
+        assertEquals("GradlePlugin(name=org.jetbrains.compose)", project.plugins.joinToString(",") { it.toString() })
+        assertEquals("MavenDependency(group=com.soywiz.korlibs.korge2, name=korge, version=, target=common),MavenDependency(group=org.jetbrains.compose.runtime, name=runtime, version=1.4.0, target=common)", project.dependencies.joinToString(",") { it.toString() })
     }
 }

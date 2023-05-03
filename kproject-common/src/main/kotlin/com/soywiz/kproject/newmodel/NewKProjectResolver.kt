@@ -1,7 +1,36 @@
 package com.soywiz.kproject.newmodel
 
 class NewKProjectResolver {
-    data class DependencyWithProject(val name: String, val dep: Dependency, val project: NewKProjectModel)
+    class DependencyWithProject(val resolver: NewKProjectResolver, val name: String, val dep: Dependency, val project: NewKProjectModel) {
+        val dependencies by lazy {
+            project.dependencies.map {
+                //println(it)
+                resolver.getProjectByDependency(it)
+            }
+        }
+
+        fun dumpDependenciesToString(): String {
+            val out = arrayListOf<String>()
+            dumpDependencies { level, name -> out += "${"  ".repeat(level)}$name" }
+            return out.joinToString("\n")
+        }
+
+        fun dumpDependencies(
+            level: Int = 0,
+            explored: MutableSet<DependencyWithProject> = mutableSetOf(),
+            gen: (level: Int, name: String) -> Unit = { level, name -> println("${"  ".repeat(level)}$name") }
+        ) {
+            if (this in explored) {
+                gen(level, "<recursion detected>")
+                return
+            }
+            explored.add(this)
+            gen(level, name)
+            for (dependency in dependencies) {
+                dependency.dumpDependencies(level + 1, explored, gen)
+            }
+        }
+    }
 
     private val projectsByFile = LinkedHashMap<FileRef, DependencyWithProject>()
     private val projectsByName = LinkedHashMap<String, DependencyWithProject>()
@@ -27,7 +56,7 @@ class NewKProjectResolver {
 
         if (oldProject == null || dep > oldProject.dep) {
             //println("projectName:$projectName : $dep")
-            val depEx = DependencyWithProject(projectName, dep, project)
+            val depEx = DependencyWithProject(this, projectName, dep, project)
             projectsByName[projectName] = depEx
             projectsByDependency[dep] = depEx
             projectsByFile[file] = depEx

@@ -99,7 +99,12 @@ fun Dependency.Companion.parseString(str: String, projectFile: FileRef = MemoryF
                 }
                 // ../korge-tiled
                 parts.size == 1 -> {
-                    return FileRefDependency(projectFile.parent()[if (firstPart.endsWith(".kproject.yml")) firstPart else "$firstPart/kproject.yml"])
+                    val rfirstPart = when {
+                        firstPart.endsWith(".kproject.yml") -> firstPart
+                        else -> "$firstPart/kproject.yml"
+                    }
+                    val file = projectFile.parent()[rfirstPart]
+                    return FileRefDependency(file)
                 }
             }
         }
