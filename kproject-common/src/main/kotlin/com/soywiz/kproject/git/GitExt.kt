@@ -50,7 +50,7 @@ fun Git.archiveZip(
 
     try {
         val mem = ByteArrayOutputStream()
-        println(this.repository.resolve(rel))
+        //println(this.repository.resolve(rel))
         this.archive()
             .setTree(this.repository.resolve(rel))
             .also {

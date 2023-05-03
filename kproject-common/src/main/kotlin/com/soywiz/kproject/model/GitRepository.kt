@@ -91,7 +91,7 @@ data class GitRepositoryWithPathAndRef(val repo: GitRepository, val path: String
             }
             val zipBytes = repo.getGit().archiveZip(path, ref)
             checkoutZip.writeBytes(zipBytes)
-            println("generateStableZipContent(zipBytes).sha256().str=${generateStableZipContent(zipBytes).sha256().str}")
+            //println("generateStableZipContent(zipBytes).sha256().str=${generateStableZipContent(zipBytes).sha256().str}")
             checkoutJson.writeText(Json.stringify(
                 mapOf(
                     "contentHash" to generateStableZipContent(zipBytes).sha256().str,
