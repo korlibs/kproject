@@ -142,7 +142,7 @@ fun generateStableZipContent(zipBytes: ByteArray): ByteArray {
     ZipInputStream(zipBytes.inputStream()).use { zis ->
         var zipEntry = zis.nextEntry
         while (zipEntry != null) {
-            files[PathInfo(zipEntry.name).fullPath] = zis.readAllBytes()
+            files[PathInfo(zipEntry.name).fullPath] = zis.readBytes()
             zis.closeEntry()
             zipEntry = zis.nextEntry
         }
