@@ -10,6 +10,10 @@ import org.eclipse.jgit.lib.*
 import java.io.*
 import java.util.zip.*
 
+fun Git.checkRelMatches(rel1: String, rel2: String): Boolean {
+    return repository.resolve(rel1) == repository.resolve(rel2)
+}
+
 fun Git.archiveZip(
     path: String,
     rel: String,
@@ -37,6 +41,7 @@ fun Git.archiveZip(
     ArchiveCommand.registerFormat("mzip", ZipArchiveFormat())
     try {
         val mem = ByteArrayOutputStream()
+        println(this.repository.resolve(rel))
         this.archive()
             .setTree(this.repository.resolve(rel))
             .setPaths(path, path.trim('/'))
@@ -118,6 +123,27 @@ fun getCachedGitCheckout(
     return outputCheckoutDir
 }
 
+fun generateStableZipContent(zipBytes: ByteArray): ByteArray {
+    val files = LinkedHashMap<String, ByteArray>()
+
+    ZipInputStream(zipBytes.inputStream()).use { zis ->
+        var zipEntry = zis.nextEntry
+        while (zipEntry != null) {
+            files[PathInfo(zipEntry.name).fullPath] = zis.readAllBytes()
+            zis.closeEntry()
+            zipEntry = zis.nextEntry
+        }
+    }
+
+    val out = ByteArrayOutputStream(files.size * 1024 + files.values.sumOf { it.size })
+    for (name in files.keys.toList().sorted()) {
+        val bytes = files[name] ?: continue
+        //println("FILE: '$name'")
+        out.writeBytes("$name\n${bytes.size}\n".toByteArray(Charsets.UTF_8))
+        out.writeBytes(bytes)
+    }
+    return out.toByteArray()
+}
 
 /*
 class GIT(val vfs: java.io.File) {

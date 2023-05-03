@@ -7,7 +7,7 @@ val String.version: Version get() = Version(this)
 data class Version(val str: String) : Comparable<Version> {
     override fun equals(other: Any?): Boolean = other is Version && this.compareTo(other) == 0
     override fun compareTo(other: Version): Int = VersionComparer.compare(this.str, other.str)
-    override fun toString(): String = "Version($str)"
+    override fun toString(): String = str
 }
 
 object VersionComparer {
