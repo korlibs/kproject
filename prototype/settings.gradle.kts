@@ -361,6 +361,8 @@ val projectFile = File(rootDir, "kproject.json5").also {
 
 File(rootDir, "gradle/.gitignore").writeTextIfNew(
 """
+    .idea
+    .gradle
     build.gradle*
     deps.gradle*
     *.settings.gradle.kts

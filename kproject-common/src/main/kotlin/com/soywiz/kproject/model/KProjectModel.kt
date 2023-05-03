@@ -236,6 +236,11 @@ data class KProject(
                 }
             }
             appendLine("}")
+
+            appendLine("File extraGradle = file(\"build.extra.gradle\")")
+            appendLine("if (extraGradle.exists()) {")
+            appendLine("    apply from: extraGradle")
+            appendLine("}")
             //appendLine("}")
         }
         //this.settings.addDeps(buildGradleText)
