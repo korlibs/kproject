@@ -3,7 +3,7 @@ package com.soywiz.kproject.newmodel
 class NewKProjectResolver {
     data class DependencyWithProject(val name: String, val dep: Dependency, val project: NewKProjectModel)
 
-    private val projectsByFile = LinkedHashMap<FileRef, NewKProjectModel>()
+    private val projectsByFile = LinkedHashMap<FileRef, DependencyWithProject>()
     private val projectsByName = LinkedHashMap<String, DependencyWithProject>()
     private val projectsByDependency = LinkedHashMap<Dependency, DependencyWithProject>()
 
@@ -18,11 +18,10 @@ class NewKProjectResolver {
         return projectsByDependency[dependency] ?: error("Can't find dependency $dependency")
     }
 
-    fun load(file: FileRef, dep: Dependency = FileRefDependency(file)): NewKProjectModel {
+    fun load(file: FileRef, dep: Dependency = FileRefDependency(file)): DependencyWithProject {
         projectsByFile[file]?.let { return it }
 
         val project = NewKProjectModel.loadFile(file)
-        projectsByFile[file] = project
         val projectName = project.name ?: dep.projectName
         val oldProject = projectsByName[projectName]
 
@@ -31,16 +30,17 @@ class NewKProjectResolver {
             val depEx = DependencyWithProject(projectName, dep, project)
             projectsByName[projectName] = depEx
             projectsByDependency[dep] = depEx
+            projectsByFile[file] = depEx
             for (dependency in project.dependencies) {
                 resolveDependency(dependency)
             }
-            return project
+            return depEx
         }
 
-        return oldProject.project
+        return oldProject
     }
 
-    fun resolveDependency(dep: Dependency): NewKProjectModel? {
+    fun resolveDependency(dep: Dependency): DependencyWithProject? {
         val fileRef = when (dep) {
             is FileRefDependency -> dep.path
             is GitDependency -> dep.file

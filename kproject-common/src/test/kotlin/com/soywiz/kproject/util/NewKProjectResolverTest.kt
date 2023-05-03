@@ -23,6 +23,7 @@ class NewKProjectResolverTest {
         """.trimIndent()
         val resolver = NewKProjectResolver()
         val mainProject = resolver.load(files["demo/kproject.yml"])
+        //println(mainProject)
         /*
         println("---")
         for (dep in mainProject.dependencies) {
