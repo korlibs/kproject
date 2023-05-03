@@ -16,7 +16,7 @@ class GitRepositoryTest {
         assertEquals(true, kprojectRepo.getGit().checkRelMatches("v0.1.2", "1e473f6d1e7db37982be808d8303ca908e754043"))
 
         assertEquals(
-            "0103fbff07fd0df2fcfef70702f609fd05f7f80ff9f6f7f40908010ef5f105f4",
+            "fef7f40204f4fa070f08090bf70d02f4f107020204030af2010bf6f10404fef8",
             GitRepositoryWithPathAndRef(kprojectRepo, "/example/sample", "v0.1.2").getContent().hash
         )
 

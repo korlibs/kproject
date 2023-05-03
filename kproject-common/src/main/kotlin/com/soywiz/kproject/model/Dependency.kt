@@ -5,7 +5,7 @@ import java.io.*
 import kotlin.io.path.*
 
 sealed interface Dependency : Comparable<Dependency> {
-    val name: String
+    val projectName: String
     val version: Version
 
     override fun compareTo(other: Dependency): Int = version.compareTo(other.version)
@@ -15,24 +15,38 @@ sealed interface Dependency : Comparable<Dependency> {
 }
 
 data class GitDependency(
-    override val name: String,
+    val name: String,
     val repo: GitRepository,
     val path: String,
     val ref: String,
     val commit: String? = null,
     val hash: String? = null,
 ) : Dependency {
-
+    val gitWithPathAndRef by lazy { GitRepositoryWithPathAndRef(repo, path, ref) }
     override val version: Version get() = Version(ref)
+    override val projectName: String get() = name
+
+    val commitCount: Int by lazy {
+        gitWithPathAndRef.getContent().commitCount
+    }
+
+    override fun compareTo(other: Dependency): Int {
+        if (other is GitDependency) {
+            return this.commitCount.compareTo(other.commitCount)
+        }
+        return super.compareTo(other)
+    }
+
 }
 
 data class MavenDependency(
     val group: String,
-    override val name: String,
+    val name: String,
     override val version: Version,
     val target: String = "common",
 ) : Dependency {
     val coordinates: String = "$group:$name:${version.str}"
+    override val projectName: String = "$group-$name"
 
     companion object {
         fun fromCoordinates(coordinates: String, target: String = "common"): MavenDependency {
@@ -45,7 +59,7 @@ data class MavenDependency(
 data class FolderDependency(
     val path: String,
 ) : Dependency {
-    override val name: String = Path(path).fileName.toString()
+    override val projectName: String = Path(path).fileName.toString()
     override val version: Version get() = Version("999.999.999.999")
 }
 

@@ -70,6 +70,15 @@ subprojects {
         archiveClassifier.set("javadoc")
     }
 
+    test {
+        testLogging {
+            exceptionFormat = 'full'
+            //events 'started', 'passed', 'skipped', 'failed'
+            events 'failed'
+            showStandardStreams = true
+        }
+    }
+
     publishing {
         repositories {
             if (sonatypePublishUser && sonatypePublishPassword) {

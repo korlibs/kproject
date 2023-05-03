@@ -68,4 +68,12 @@ class DependencyTest {
             Dependency.parseString("../korge-tiled")
         )
     }
+
+    @Test
+    fun testCommitCount() {
+        assertEquals(
+            30,
+            (Dependency.parseString("git@github.com:korlibs/korge-ext.git#0.0.1::734d96ccc18733064ef9fbda8ac359585011112d") as GitDependency).commitCount
+        )
+    }
 }

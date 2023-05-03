@@ -3,12 +3,18 @@ package com.soywiz.kproject.git
 import com.soywiz.kproject.model.*
 import com.soywiz.kproject.util.*
 import org.eclipse.jgit.api.*
-import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.api.errors.*
 import org.eclipse.jgit.errors.*
 import org.eclipse.jgit.lib.*
 import java.io.*
 import java.util.zip.*
+
+fun Git.countCommits(ref: String? = null): Int {
+    return log()
+        .also { if (ref != null) it.add(repository.resolve(ref)) }
+        .call()
+        .count()
+}
 
 fun Git.checkRelMatches(rel1: String, rel2: String): Boolean {
     return repository.resolve(rel1) == repository.resolve(rel2)
@@ -18,6 +24,8 @@ fun Git.archiveZip(
     path: String,
     rel: String,
 ): ByteArray {
+    val path = if (path.isBlank()) "/" else path
+
     class ExtZipOutputStream(out: OutputStream, val params: Map<String?, Any?>?) : ZipOutputStream(out) {
         var removePrefix: String? = params?.getOrElse("removePrefix") { null }?.toString()
     }
@@ -39,15 +47,20 @@ fun Git.archiveZip(
 
     kotlin.runCatching { ArchiveCommand.unregisterFormat("mzip") }
     ArchiveCommand.registerFormat("mzip", ZipArchiveFormat())
+
     try {
         val mem = ByteArrayOutputStream()
         println(this.repository.resolve(rel))
         this.archive()
             .setTree(this.repository.resolve(rel))
-            .setPaths(path, path.trim('/'))
+            .also {
+                if (path != "/") {
+                    it.setPaths(path.trimStart('/'))
+                }
+            }
             .setFilename("archive.mzip")
             .setFormat("mzip")
-            .setFormatOptions(mapOf("removePrefix" to "$path/"))
+            //.setFormatOptions(mapOf("removePrefix" to "$path/"))
             .setOutputStream(mem)
             .call()
         return mem.toByteArray()
