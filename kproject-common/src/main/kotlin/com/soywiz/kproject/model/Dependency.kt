@@ -26,13 +26,11 @@ data class GitDependency(
     override val version: Version get() = Version(ref)
     override val projectName: String get() = name
 
-    val commitCount: Int by lazy {
-        gitWithPathAndRef.getContent().commitCount
-    }
+    val commitCount: Int by lazy { gitWithPathAndRef.getContent().commitCount }
 
     override fun compareTo(other: Dependency): Int {
         if (other is GitDependency) {
-            return this.commitCount.compareTo(other.commitCount)
+            return gitWithPathAndRef.compareTo(other.gitWithPathAndRef)
         }
         return super.compareTo(other)
     }

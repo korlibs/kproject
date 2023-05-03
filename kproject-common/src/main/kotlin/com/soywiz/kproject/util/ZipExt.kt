@@ -2,7 +2,6 @@ package com.soywiz.kproject.util
 
 import java.io.*
 import java.util.zip.*
-import java.util.zip.ZipEntry
 
 /**
  * List files ordered by filename for reproducibility.
@@ -66,7 +65,6 @@ fun File.normalisedPathRelativeTo(baseDir: File) =
 fun zipTo(zipFile: File, entries: Sequence<Pair<String, ByteArray>>) {
     zipTo(zipFile.outputStream(), entries)
 }
-
 
 private
 fun zipTo(outputStream: OutputStream, entries: Sequence<Pair<String, ByteArray>>) {

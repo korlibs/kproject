@@ -60,7 +60,7 @@ fun Git.archiveZip(
             }
             .setFilename("archive.mzip")
             .setFormat("mzip")
-            //.setFormatOptions(mapOf("removePrefix" to "$path/"))
+            .setFormatOptions(mapOf("removePrefix" to "$path/"))
             .setOutputStream(mem)
             .call()
         return mem.toByteArray()

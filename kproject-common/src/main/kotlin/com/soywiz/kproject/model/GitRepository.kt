@@ -38,7 +38,7 @@ data class GitRepository(val repo: String) {
     }
 }
 
-data class GitRepositoryWithPathAndRef(val repo: GitRepository, val path: String, val ref: String) {
+data class GitRepositoryWithPathAndRef(val repo: GitRepository, val path: String, val ref: String) : Comparable<GitRepositoryWithPathAndRef> {
     data class Content(
         /**
          * [File] with a path to a zip file with the contents
@@ -65,6 +65,11 @@ data class GitRepositoryWithPathAndRef(val repo: GitRepository, val path: String
          */
         val commitCount: Int,
     )
+
+    override fun compareTo(other: GitRepositoryWithPathAndRef): Int {
+        return this.getContent().commitCount.compareTo(other.getContent().commitCount)
+        //return Version(ref).compareTo(Version(other.ref))
+    }
 
     fun getContent(clean: Boolean = false): Content {
         val ref = ref.pathInfo.fullPath
