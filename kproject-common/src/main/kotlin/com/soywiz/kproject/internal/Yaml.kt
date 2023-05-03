@@ -42,7 +42,10 @@ internal object Yaml {
                     list.add(res)
                 } else {
                     if (TRACE) println("${levelStr}CHILD.return: $res")
-                    return res
+                    (res as MutableMap<String, Any?>).forEach { (key, value) ->
+                        if (map != null) { map!![key] = value }
+                    }
+                    return map
                 }
             } else if (lineLevel != null && lineLevel < level) {
                 // parent level
