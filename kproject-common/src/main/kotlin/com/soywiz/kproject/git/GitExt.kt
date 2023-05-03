@@ -152,8 +152,8 @@ fun generateStableZipContent(zipBytes: ByteArray): ByteArray {
     for (name in files.keys.toList().sorted()) {
         val bytes = files[name] ?: continue
         //println("FILE: '$name'")
-        out.writeBytes("$name\n${bytes.size}\n".toByteArray(Charsets.UTF_8))
-        out.writeBytes(bytes)
+        out.write("$name\n${bytes.size}\n".toByteArray(Charsets.UTF_8))
+        out.write(bytes)
     }
     return out.toByteArray()
 }
