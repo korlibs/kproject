@@ -55,7 +55,7 @@ fun Project.configureMavenCentralRelease() {
                 println("profileId=$profileId")
                 println("stagedRepositoryId=$stagedRepositoryId")
                 println("::set-output name=stagedRepositoryId::$stagedRepositoryId")
-                File(rootProject.buildDir, "stagedRepositoryId.ref").writeText(stagedRepositoryId)
+                File(rootProject.buildDir, "stagedRepositoryId.ref").also { it.parentFile.mkdirs() }.writeText(stagedRepositoryId)
             }
         }
     }
