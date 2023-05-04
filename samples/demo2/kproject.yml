@@ -1,0 +1,3 @@
+name: Ademo2
+dependencies:
+- ../demo3.kproject.yml
