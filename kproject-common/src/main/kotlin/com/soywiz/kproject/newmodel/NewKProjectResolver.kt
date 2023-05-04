@@ -1,12 +1,12 @@
 package com.soywiz.kproject.newmodel
 
 class NewKProjectResolver {
-    class DependencyWithProject(val resolver: NewKProjectResolver, val name: String, val dep: Dependency, val project: NewKProjectModel) {
+    class DependencyWithProject(val resolver: NewKProjectResolver, val name: String, val dep: Dependency, val project: NewKProjectModel?) {
         val dependencies by lazy {
-            project.dependencies.map {
+            project?.dependencies?.map {
                 //println(it)
                 resolver.getProjectByDependency(it)
-            }
+            } ?: emptyList()
         }
 
         fun dumpDependenciesToString(): String {
@@ -25,7 +25,10 @@ class NewKProjectResolver {
                 return
             }
             explored.add(this)
-            gen(level, name)
+            gen(level, when {
+                this.dep.version != Dependency.MAX_VERSION -> "$name:${this.dep.version}"
+                else -> name
+            })
             for (dependency in dependencies) {
                 dependency.dumpDependencies(level + 1, explored, gen)
             }
@@ -35,16 +38,18 @@ class NewKProjectResolver {
     private val projectsByFile = LinkedHashMap<FileRef, DependencyWithProject>()
     private val projectsByName = LinkedHashMap<String, DependencyWithProject>()
     private val projectsByDependency = LinkedHashMap<Dependency, DependencyWithProject>()
+    private val mavenDependenciesByName = LinkedHashMap<String, DependencyWithProject>()
 
     fun getProjectNames(): Set<String> = projectsByName.keys
     fun getAllProjects(): Map<String, DependencyWithProject> = projectsByName.toMap()
+    fun getAllMavenDependencies(): List<DependencyWithProject> = mavenDependenciesByName.values.toList()
 
     fun getProjectByName(name: String): DependencyWithProject =
         projectsByName[name] ?: error("Can't find project $name")
 
     fun getProjectByDependency(dependency: Dependency): DependencyWithProject {
         resolveDependency(dependency)
-        return projectsByDependency[dependency] ?: error("Can't find dependency $dependency")
+        return mavenDependenciesByName[dependency.projectName] ?: projectsByDependency[dependency] ?: error("Can't find dependency $dependency")
     }
 
     fun load(file: FileRef, dep: Dependency = FileRefDependency(file)): DependencyWithProject {
@@ -73,7 +78,13 @@ class NewKProjectResolver {
         val fileRef = when (dep) {
             is FileRefDependency -> dep.path
             is GitDependency -> dep.file
-            is MavenDependency -> null
+            is MavenDependency -> {
+                val oldMavenDep = mavenDependenciesByName[dep.projectName]
+                if (oldMavenDep == null || dep > oldMavenDep.dep) {
+                    mavenDependenciesByName[dep.projectName] = DependencyWithProject(this, dep.projectName, dep, null)
+                }
+                null
+            }
         }
         return fileRef?.let {
             this@NewKProjectResolver.load(

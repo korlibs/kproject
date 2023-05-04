@@ -9,7 +9,9 @@ sealed interface Dependency : Comparable<Dependency> {
 
     override fun compareTo(other: Dependency): Int = version.compareTo(other.version)
 
-    companion object
+    companion object {
+        val MAX_VERSION = Version("999.999.999.999")
+    }
 }
 
 data class GitDependency(
@@ -65,7 +67,7 @@ data class FileRefDependency(
         path.name.endsWith("kproject.yml") -> path.parent().name
         else -> path.name
     }
-    override val version: Version get() = Version("999.999.999.999")
+    override val version: Version get() = Dependency.MAX_VERSION
 }
 
 fun Dependency.Companion.parseString(str: String, projectFile: FileRef = MemoryFileRef()): Dependency {

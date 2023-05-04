@@ -62,4 +62,79 @@ class NewKProjectResolverTest {
             "Ademo4" to "/demo4/kproject.yml",
         ), paths)
     }
+
+    @Test
+    fun testVersionConflict() {
+        val files = MemoryFiles().root
+        files["demo/kproject.yml"] = """
+            dependencies:
+              - ../demo2
+              -"maven::common::org.jetbrains.compose.runtime:runtime:1.4.0"
+        """.trimIndent()
+        files["demo2/kproject.yml"] = """
+            name: Ademo2
+            dependencies:
+              - ../demo3
+              - "maven::common::org.jetbrains.compose.runtime:runtime:1.4.2"
+        """.trimIndent()
+        files["demo3/kproject.yml"] = """
+            name: Ademo3
+            dependencies:
+              - "maven::common::org.jetbrains.compose.runtime:runtime:1.4.1"
+        """.trimIndent()
+
+        val resolver = NewKProjectResolver()
+        val mainProject = resolver.load(files["demo/kproject.yml"])
+        assertEquals(
+            """
+                demo
+                  Ademo2
+                    Ademo3
+                      org.jetbrains.compose.runtime-runtime:1.4.2
+                    <recursion detected>
+                  <recursion detected>
+            """.trimIndent(),
+            mainProject.dumpDependenciesToString()
+        )
+        assertEquals(listOf("demo", "Ademo2", "Ademo3"), resolver.getProjectNames().toList())
+
+        assertEquals(
+            listOf(
+                MavenDependency(group="org.jetbrains.compose.runtime", name="runtime", version="1.4.2".version, target="common")
+            ),
+            resolver.getAllMavenDependencies().map { it.dep }
+        )
+
+        val out = arrayListOf<String>().also { it ->
+            for (project in resolver.getAllProjects().values) {
+                it.add("${project.name}:")
+                for (dep in project.dependencies) {
+                    it.add(" - ${dep.dep}")
+                }
+            }
+        }
+        assertEquals(
+            """
+                demo:
+                 - FileRefDependency(path=MemoryFileRef(files=MemoryFiles[3], path=PathInfo(fullPath=/demo2/kproject.yml)))
+                 - MavenDependency(group=org.jetbrains.compose.runtime, name=runtime, version=1.4.2, target=common)
+                Ademo2:
+                 - FileRefDependency(path=MemoryFileRef(files=MemoryFiles[3], path=PathInfo(fullPath=/demo3/kproject.yml)))
+                 - MavenDependency(group=org.jetbrains.compose.runtime, name=runtime, version=1.4.2, target=common)
+                Ademo3:
+                 - MavenDependency(group=org.jetbrains.compose.runtime, name=runtime, version=1.4.2, target=common)
+            """.trimIndent(),
+            out.joinToString("\n")
+        )
+
+        val paths = resolver.getAllProjects().map {
+            it.key to ((it.value.dep as? FileRefDependency?)?.path as? MemoryFileRef?)?.path?.fullPath
+        }.toMap()
+
+        assertEquals(mapOf(
+            "demo" to "/demo/kproject.yml",
+            "Ademo2" to "/demo2/kproject.yml",
+            "Ademo3" to "/demo3/kproject.yml",
+        ), paths)
+    }
 }
