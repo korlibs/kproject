@@ -1,6 +1,0 @@
-{
-  name: "klogger",
-  type: "library",
-  version: "3.2.0",
-  src: "git::korlibs/korge::/klogger/src::v3.2.0",
-}
