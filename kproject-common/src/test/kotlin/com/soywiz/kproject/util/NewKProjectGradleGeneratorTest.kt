@@ -158,6 +158,11 @@ class NewKProjectGradleGeneratorTest {
                 if (extraGradle.exists()) {
                     apply from: extraGradle
                 }
+                
+
+                ## kproject.lock
+                https://github.com/korlibs/kproject.git/samples/demo2#95696dd942ebc8db4ee9d9f4835ce12d853ff16f ::: 95696dd942ebc8db4ee9d9f4835ce12d853ff16f:f10dfcf9f2f409050d060a0f00f00a0f0cf80b09fbfefa02fe05f70bf104f105
+                https://github.com/korlibs/kproject.git/samples/demo3.kproject.yml#95696dd942ebc8db4ee9d9f4835ce12d853ff16f ::: 95696dd942ebc8db4ee9d9f4835ce12d853ff16f:0e040e0a0ffaf602050d080501fd05f5f102f80afcfff60500ffff08f606fff6
             """.trimIndent(),
             out.joinToString("\n").trim()
         )
