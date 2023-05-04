@@ -2,8 +2,9 @@ name: Testing
 
 on:
   push:
-    branches:
-      - '*'
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 env:
   FORCED_VERSION: "0.0.999-SNAPSHOT"
