@@ -43,6 +43,11 @@ class DependencyTest {
             MavenDependency(group="org.jetbrains.kotlinx", name="kotlinx-coroutines-core", version=Version("1.6.4"), target="jvm"),
             Dependency.parseString("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4::jvm"),
         )
+        assertEquals(
+            MavenDependency(group="com.soywiz.korlibs.korge2", name="korge", version=Version(""), target="common"),
+            Dependency.parseString("com.soywiz.korlibs.korge2:korge"),
+        )
+
     }
 
     @Test

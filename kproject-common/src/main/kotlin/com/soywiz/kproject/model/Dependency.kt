@@ -104,7 +104,7 @@ fun Dependency.Companion.parseString(str: String, projectFile: FileRef = MemoryF
                 }
                 // org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4
                 firstPart.contains(':') -> {
-                    val (group, name, version) = firstPart.split(":")
+                    val (group, name, version) = firstPart.split(":") + listOf("")
                     return MavenDependency(group, name, Version(version), parts.getOrNull(1) ?: "common")
                 }
                 // ../korge-tiled
@@ -135,6 +135,7 @@ fun Dependency.Companion.parseString(str: String, projectFile: FileRef = MemoryF
             
             ## MAVEN:
             - maven::common::org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4
+            - com.soywiz.korlibs.korge2:korge
             - org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4
             - org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4::common
             - org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4::jvm
