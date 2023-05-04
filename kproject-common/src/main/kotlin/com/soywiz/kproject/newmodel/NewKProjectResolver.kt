@@ -2,6 +2,8 @@ package com.soywiz.kproject.newmodel
 
 class NewKProjectResolver {
     class DependencyWithProject(val resolver: NewKProjectResolver, val name: String, val dep: Dependency, val project: NewKProjectModel?) {
+        override fun toString(): String = "DependencyWithProject(name='$name', dep=$dep, project=$project)"
+
         val dependencies by lazy {
             project?.dependencies?.map {
                 //println(it)
@@ -91,7 +93,9 @@ class NewKProjectResolver {
                 when {
                     fileRef.name.endsWith("kproject.yml") -> fileRef
                     else -> fileRef["kproject.yml"]
-                }, dep)
+                },
+                dep
+            )
         }
     }
 }
