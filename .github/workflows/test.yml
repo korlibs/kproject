@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - '*'
-    tags-ignore:
-      - 'v*'
 
 env:
   FORCED_VERSION: "0.0.999-SNAPSHOT"
