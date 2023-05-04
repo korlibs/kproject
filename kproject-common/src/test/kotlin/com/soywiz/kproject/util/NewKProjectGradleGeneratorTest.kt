@@ -1,6 +1,7 @@
 package com.soywiz.kproject.util
 
 import com.soywiz.kproject.model.*
+import com.soywiz.kproject.version.*
 import kotlin.test.*
 
 class NewKProjectGradleGeneratorTest {
@@ -165,6 +166,7 @@ class NewKProjectGradleGeneratorTest {
                 https://github.com/korlibs/kproject.git/samples/demo3.kproject.yml#95696dd942ebc8db4ee9d9f4835ce12d853ff16f ::: 95696dd942ebc8db4ee9d9f4835ce12d853ff16f:0e040e0a0ffaf602050d080501fd05f5f102f80afcfff60500ffff08f606fff6
             """.trimIndent(),
             out.joinToString("\n").trim()
+                .replace(KProjectVersion.VERSION, "0.0.1-SNAPSHOT")
         )
     }
 }
