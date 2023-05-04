@@ -16,8 +16,8 @@ internal object Yaml {
         else -> str.toIntOrNull() ?: str.toDoubleOrNull() ?: str
     }
 
-    const val TRACE = true
-    //const val TRACE = false
+    //const val TRACE = true
+    const val TRACE = false
     private val EMPTY_SET = setOf<String>()
     private val SET_COMMA_END_ARRAY = setOf(",", "]")
 
