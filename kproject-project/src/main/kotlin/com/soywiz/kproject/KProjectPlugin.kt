@@ -6,8 +6,6 @@ import org.gradle.api.*
 import org.gradle.api.plugins.*
 import org.jetbrains.kotlin.gradle.dsl.*
 import org.jetbrains.kotlin.gradle.plugin.*
-import org.jetbrains.kotlin.gradle.plugin.mpp.*
-import java.io.*
 
 @Suppress("unused")
 class KProjectPlugin : Plugin<Project> {
@@ -18,12 +16,14 @@ class KProjectPlugin : Plugin<Project> {
         //project.repositories()
         val kotlin = project.extensions.getByType(KotlinMultiplatformExtension::class.java)
 
-        val kprojectYml = File(project.projectDir, "kproject.yml")
-        val kproject = if (kprojectYml.exists()) KProject.load(kprojectYml, KSet(File("modules")), true) else null
+        //val kprojectYml = File(project.projectDir, "kproject.yml")
+        //val kproject = if (kprojectYml.exists()) KProject.load(kprojectYml, KSet(File("modules")), true) else null
 
+        // @TODO: Configure
         fun hasTarget(name: KProjectTarget): Boolean {
             if (name.isKotlinNative && isWindowsOrLinuxArm) return false
-            return kproject?.hasTarget(name) ?: true
+            //return kproject?.hasTarget(name) ?: true
+            return true
         }
 
         kotlin.apply {

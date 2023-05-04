@@ -2,9 +2,13 @@ package com.soywiz.kproject.util
 
 val String.pathInfo: PathInfo get () = PathInfo(this)
 
-inline class PathInfo private constructor(val fullPath: String) {
+class PathInfo private constructor(val fullPath: String, unit: Unit) {
+    override fun toString(): String = "PathInfo($fullPath)"
+    override fun equals(other: Any?): Boolean = other is PathInfo && this.fullPath == other.fullPath
+    override fun hashCode(): Int = fullPath.hashCode()
+
     companion object {
-        operator fun invoke(str: String): PathInfo = PathInfo(normalizePath(str))
+        operator fun invoke(str: String): PathInfo = PathInfo(normalizePath(str), Unit)
 
         fun normalizePath(fullPath: String): String {
             val rfullPath = fullPath.replace('\\', '/')

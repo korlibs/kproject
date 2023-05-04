@@ -1,5 +1,6 @@
 package com.soywiz.kproject.newmodel
 
+import java.io.*
 import kotlin.test.*
 
 class FileRefTest {
@@ -47,5 +48,11 @@ class FileRefTest {
             "/demo",
             mem["/demo3.kproject.yml"][".."]["../demo"].path.fullPath
         )
+    }
+
+    @Test
+    fun testLocalFileTest() {
+        assertEquals(LocalFileRef(File("aa/demo.txt")), LocalFileRef(File("aa/hello.txt")).parent()["demo.txt"])
+        assertEquals(LocalFileRef(File("/aa/demo.txt")), LocalFileRef(File("/aa/hello.txt")).parent()["demo.txt"])
     }
 }

@@ -32,7 +32,8 @@ fun Settings.kprojectNew(path: String) {
     for (result in results) {
         val rname = result.projectName
         val sourceDirectory = (result.projectDir as LocalFileRef).file
+        println(":$rname -> $sourceDirectory")
         settings.include(":${rname}")
-        settings.project(":${rname}").projectDir = sourceDirectory
+        settings.project(":${rname}").projectDir = sourceDirectory.relativeTo(rootDir)
     }
 }

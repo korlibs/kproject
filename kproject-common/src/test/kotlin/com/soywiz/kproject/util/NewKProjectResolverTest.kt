@@ -116,14 +116,14 @@ class NewKProjectResolverTest {
         assertEquals(
             """
                 demo:
-                 - FileRefDependency(path=MemoryFileRef(files=MemoryFiles[3], path=PathInfo(fullPath=/demo2/kproject.yml)))
+                 - FileRefDependency(path=MemoryFileRef(files=MemoryFiles[3], path=PathInfo(/demo2/kproject.yml)))
                  - MavenDependency(group=org.jetbrains.compose.runtime, name=runtime, version=1.4.2, target=common)
                 Ademo2:
-                 - FileRefDependency(path=MemoryFileRef(files=MemoryFiles[3], path=PathInfo(fullPath=/demo3/kproject.yml)))
+                 - FileRefDependency(path=MemoryFileRef(files=MemoryFiles[3], path=PathInfo(/demo3/kproject.yml)))
                  - MavenDependency(group=org.jetbrains.compose.runtime, name=runtime, version=1.4.2, target=common)
                 Ademo3:
                  - MavenDependency(group=org.jetbrains.compose.runtime, name=runtime, version=1.4.2, target=common)
-            """.trimIndent(),
+             """.trimIndent(),
             out.joinToString("\n")
         )
 

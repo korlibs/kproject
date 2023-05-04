@@ -20,13 +20,21 @@ class NewKProjectGradleGenerator(val projectRootFolder: FileRef) {
             val buildGradleFile = file.folder[
                 when (file.file.name) {
                     "kproject.yml" -> "build.gradle"
-                    else -> file.file.name.removeSuffix(".kproject.yml") + ".build.gradle"
+                    else -> file.file.name.removeSuffix(".kproject.yml") + "/build.gradle"
                 }
             ]
 
             val proj = project.project
             if (proj != null) {
                 outProjects += ProjectRef(project.name, buildGradleFile.parent())
+                if (!buildGradleFile.parent()[".gitignore"].exists()) {
+                    buildGradleFile.parent()[".gitignore"] = """
+                        /.idea
+                        /.gradle
+                        /build
+                        /build.gradle
+                    """.trimIndent()
+                }
                 buildGradleFile.writeText(buildString {
                     appendLine("buildscript { repositories { mavenLocal(); mavenCentral(); google(); gradlePluginPortal() } }")
                     appendLine("plugins {")
@@ -61,10 +69,10 @@ class NewKProjectGradleGenerator(val projectRootFolder: FileRef) {
                         val ddep = dep.dep
                         when (ddep) {
                             is MavenDependency -> {
-                                appendLine("  add(\"${ddep.target}Main\", ${ddep.coordinates.quoted})")
+                                appendLine("  add(\"${ddep.target}MainApi\", ${ddep.coordinates.quoted})")
                             }
                             else -> {
-                                appendLine("  add(\"commonMain\", ${":${dep.name}".quoted})")
+                                appendLine("  add(\"commonMainApi\", project(${":${dep.name}".quoted}))")
                             }
                         }
                     }

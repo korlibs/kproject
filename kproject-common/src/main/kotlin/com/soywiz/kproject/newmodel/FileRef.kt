@@ -6,6 +6,12 @@ import java.io.*
 
 sealed interface FileRef {
     val name: String
+    fun exists(): Boolean = try {
+        readBytes()
+        true
+    } catch (e: Throwable) {
+        false
+    }
     fun writeBytes(data: ByteArray)
     fun writeText(data: String) = writeBytes(data.toByteArray(Charsets.UTF_8))
     fun readBytes(): ByteArray
@@ -16,7 +22,7 @@ sealed interface FileRef {
     fun parent(): FileRef = get("..")
 }
 
-data class MemoryFiles(val map: MutableMap<String, ByteArray> = LinkedHashMap()) {
+class MemoryFiles(val map: MutableMap<String, ByteArray> = LinkedHashMap()) {
     override fun toString(): String = "MemoryFiles[${map.size}]"
 
     val root: MemoryFileRef = MemoryFileRef(this, PathInfo("/"))
@@ -37,6 +43,7 @@ data class MemoryFileRef(val files: MemoryFiles, val path: PathInfo) : FileRef {
     }
 
     override fun writeBytes(data: ByteArray) {
+        //println("WRITE: $normalized = bytes[${data.size}]")
         files.map[normalized] = data
     }
 
@@ -50,10 +57,13 @@ data class LocalFileRef(val file: File) : FileRef {
     override val name: String get() = file.name
     override fun writeBytes(data: ByteArray) {
         file.parentFile.mkdirs()
-        file.writeBytes(data)
+        if (!file.exists() || !file.readBytes().contentEquals(data)) {
+            file.writeBytes(data)
+        }
     }
     override fun readBytes(): ByteArray = file.readBytes()
-    override fun get(path: String): LocalFileRef = LocalFileRef(File(file, path))
+    override fun exists(): Boolean = file.exists()
+    override fun get(path: String): LocalFileRef = LocalFileRef(File("${file.path}/$path".pathInfo.fullPath))
 }
 
 data class GitFileRef(val git: GitRepository, val ref: String, val path: String) : FileRef {
