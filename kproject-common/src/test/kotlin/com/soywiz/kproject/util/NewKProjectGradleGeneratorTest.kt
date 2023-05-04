@@ -1,6 +1,6 @@
 package com.soywiz.kproject.util
 
-import com.soywiz.kproject.newmodel.*
+import com.soywiz.kproject.model.*
 import com.soywiz.kproject.version.*
 import kotlin.test.*
 

@@ -1,6 +1,5 @@
 package com.soywiz.kproject.git
 
-import com.soywiz.kproject.model.*
 import com.soywiz.kproject.util.*
 import org.eclipse.jgit.api.*
 import org.eclipse.jgit.api.errors.*

@@ -1,4 +1,4 @@
-package com.soywiz.kproject.newmodel
+package com.soywiz.kproject.model
 
 import com.soywiz.kproject.util.*
 import java.io.*
