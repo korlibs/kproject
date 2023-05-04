@@ -8,10 +8,12 @@ class NewKProjectGradleGenerator(val projectRootFolder: FileRef) {
     val resolver = NewKProjectResolver()
 
     data class ResolveDep(val file: FileRef, val folder: FileRef = file.parent())
+    data class ProjectRef(val projectName: String, val projectDir: FileRef)
 
-    fun generate(path: String) {
+    fun generate(path: String) : List<ProjectRef> {
         resolver.load(projectRootFolder[path])
 
+        val outProjects = arrayListOf<ProjectRef>()
         for (project in resolver.getAllProjects().values) {
             val file = resolveAndGetProjectFileRefFromDependency(project.dep, project.name)
 
@@ -24,6 +26,7 @@ class NewKProjectGradleGenerator(val projectRootFolder: FileRef) {
 
             val proj = project.project
             if (proj != null) {
+                outProjects += ProjectRef(project.name, buildGradleFile.parent())
                 buildGradleFile.writeText(buildString {
                     appendLine("buildscript { repositories { mavenLocal(); mavenCentral(); google(); gradlePluginPortal() } }")
                     appendLine("plugins {")
@@ -83,6 +86,8 @@ class NewKProjectGradleGenerator(val projectRootFolder: FileRef) {
             //println("file=$file")
             //println("buildGradleFile=$buildGradleFile")
         }
+
+        return outProjects
     }
 
     fun resolveAndGetProjectFileRefFromDependency(dependency: Dependency, projectName: String = dependency.projectName): ResolveDep {

@@ -44,6 +44,8 @@ data class MemoryFileRef(val files: MemoryFiles, val path: PathInfo) : FileRef {
     override fun get(path: String): MemoryFileRef = MemoryFileRef(files, this.path.access(path))
 }
 
+val File.fileRef: LocalFileRef get() = LocalFileRef(this)
+
 data class LocalFileRef(val file: File) : FileRef {
     override val name: String get() = file.name
     override fun writeBytes(data: ByteArray) {

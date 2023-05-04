@@ -1,4 +1,5 @@
 import com.soywiz.kproject.model.*
+import com.soywiz.kproject.newmodel.*
 import org.gradle.api.initialization.*
 import java.io.*
 
@@ -11,10 +12,27 @@ import java.io.*
 //fun Settings.rootKProject() {
 //    kproject("./")
 //}
+fun Settings.kproject(path: String) = kprojectOld(path)
+//fun Settings.kproject(path: String) = kprojectNew(path)
 
-fun Settings.kproject(path: String) {
+fun Settings.kprojectOld(path: String) {
     val file1 = File(rootDir, "$path.kproject.yml")
     val file2 = File(rootDir, "$path/kproject.yml")
     val file = listOf(file1, file2).firstOrNull { it.exists() } ?: error("Can't find kproject.yml at path $path")
     KProject.load(file, KSet(this), root = true).resolve(this)
+}
+
+fun Settings.kprojectNew(path: String) {
+    val settings = this
+    val file1 = File(rootDir, "$path.kproject.yml")
+    val file2 = File(rootDir, "$path/kproject.yml")
+    val file = listOf(file1, file2).firstOrNull { it.exists() } ?: error("Can't find kproject.yml at path $path")
+    val results = NewKProjectGradleGenerator(LocalFileRef(rootDir))
+        .generate(file.relativeTo(rootDir).path)
+    for (result in results) {
+        val rname = result.projectName
+        val sourceDirectory = (result.projectDir as LocalFileRef).file
+        settings.include(":${rname}")
+        settings.project(":${rname}").projectDir = sourceDirectory
+    }
 }
