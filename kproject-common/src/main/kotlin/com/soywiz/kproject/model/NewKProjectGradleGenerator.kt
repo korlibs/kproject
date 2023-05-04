@@ -44,12 +44,13 @@ class NewKProjectGradleGenerator(val projectRootFolder: FileRef) {
 
                 outProjects += ProjectRef(project.name, buildGradleFile.parent())
                 if (!buildGradleFile.parent()[".gitignore"].exists()) {
-                    buildGradleFile.parent()[".gitignore"] = """
-                        /.idea
-                        /.gradle
-                        /build
-                        /build.gradle
-                    """.trimIndent()
+                    buildGradleFile.parent()[".gitignore"] = buildString {
+                        if (projSrc != null) appendLine("/src")
+                        appendLine("/.idea")
+                        appendLine("/.gradle")
+                        appendLine("/build")
+                        appendLine("/build.gradle")
+                    }
                 }
                 buildGradleFile.writeText(buildString {
                     appendLine("buildscript { repositories { mavenLocal(); mavenCentral(); google(); gradlePluginPortal() } }")
@@ -130,9 +131,12 @@ class NewKProjectGradleGenerator(val projectRootFolder: FileRef) {
                 val targetFolder = projectRootFolder["modules/${projectName}"]
                 val pathInfo = dependency.path.pathInfo
                 val content = dependency.getCachedContentWithLockCheck()
+                val gitArchiveFileRef = targetFolder[".gitarchive"]
 
-                if (!targetFolder.exists()) {
+                if (!targetFolder.exists() || !gitArchiveFileRef.exists() || (gitArchiveFileRef.exists() && gitArchiveFileRef.readText() != content.ref)) {
+                    targetFolder.deleteTree()
                     unzipTo(targetFolder, content.zipFile)
+                    gitArchiveFileRef.writeText(content.ref)
                 }
                 ResolveDep(when {
                     pathInfo.isFinalFile -> targetFolder[pathInfo.name]

@@ -6,12 +6,8 @@ import java.io.*
 
 sealed interface FileRef {
     val name: String
-    fun exists(): Boolean = try {
-        readBytes()
-        true
-    } catch (e: Throwable) {
-        false
-    }
+    fun exists(): Boolean = runCatching { readBytes() }.getOrNull() != null
+    fun deleteTree(): Unit = TODO()
     fun writeBytes(data: ByteArray)
     fun writeText(data: String) = writeBytes(data.toByteArray(Charsets.UTF_8))
     fun readBytes(): ByteArray
@@ -55,6 +51,10 @@ val File.fileRef: LocalFileRef get() = LocalFileRef(this)
 
 data class LocalFileRef(val file: File) : FileRef {
     override val name: String get() = file.name
+    override fun deleteTree() {
+        file.deleteRecursively()
+    }
+
     override fun writeBytes(data: ByteArray) {
         file.parentFile.mkdirs()
         if (!file.exists() || !file.readBytes().contentEquals(data)) {
