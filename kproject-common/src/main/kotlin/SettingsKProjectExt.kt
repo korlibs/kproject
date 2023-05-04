@@ -1,4 +1,4 @@
-import com.soywiz.kproject.newmodel.*
+import com.soywiz.kproject.model.*
 import org.gradle.api.initialization.*
 import java.io.*
 

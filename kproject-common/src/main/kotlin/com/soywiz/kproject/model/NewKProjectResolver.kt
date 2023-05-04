@@ -1,4 +1,4 @@
-package com.soywiz.kproject.newmodel
+package com.soywiz.kproject.model
 
 class NewKProjectResolver {
     class DependencyWithProject(val resolver: NewKProjectResolver, val name: String, val dep: Dependency, val project: NewKProjectModel?) {

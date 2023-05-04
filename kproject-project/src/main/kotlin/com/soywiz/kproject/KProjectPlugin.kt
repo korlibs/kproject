@@ -1,6 +1,6 @@
 package com.soywiz.kproject
 
-import com.soywiz.kproject.newmodel.*
+import com.soywiz.kproject.model.*
 import com.soywiz.kproject.util.*
 import org.gradle.api.*
 import org.gradle.api.plugins.*
