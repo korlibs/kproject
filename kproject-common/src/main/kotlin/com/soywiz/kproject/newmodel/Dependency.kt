@@ -110,25 +110,26 @@ fun Dependency.Companion.parseString(str: String, projectFile: FileRef = MemoryF
                 }
             }
         }
-        error("""
-            Don't know how to handle '$str'
-            Supported formats:
-                ## FOLDER:
-                - ../korge-tiled
-                
-                ## GIT:
-                - git::adder::korlibs/kproject::/modules/adder::54f73b01cea9cb2e8368176ac45f2fca948e57db
-                - git@github.com:korlibs/korge-ext.git/korge-tiled#0.0.1::734d96ccc18733064ef9fbda8ac359585011112d
-                - https://github.com:korlibs/korge-ext.git/korge-tiled#0.0.1::734d96ccc18733064ef9fbda8ac359585011112d
-                
-                ## MAVEN:
-                - maven::common::org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4
-                - org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4
-                - org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4::common
-                - org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4::jvm
-        """)
+        error("Don't know how to handle '$str'")
     } catch (e: Throwable) {
-        throw IllegalArgumentException("Invalid format for string '$str'", e)
+        throw IllegalArgumentException("""
+            Invalid format for string '$str' : ${e.message}
+
+            Supported formats:
+            ## FOLDER:
+            - ../korge-tiled
+            
+            ## GIT:
+            - git::adder::korlibs/kproject::/modules/adder::54f73b01cea9cb2e8368176ac45f2fca948e57db
+            - git@github.com:korlibs/korge-ext.git/korge-tiled#0.0.1::734d96ccc18733064ef9fbda8ac359585011112d
+            - https://github.com:korlibs/korge-ext.git/korge-tiled#0.0.1::734d96ccc18733064ef9fbda8ac359585011112d
+            
+            ## MAVEN:
+            - maven::common::org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4
+            - org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4
+            - org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4::common
+            - org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4::jvm
+        """.trimIndent(), e)
     }
 }
 

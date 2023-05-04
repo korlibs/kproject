@@ -137,4 +137,34 @@ class NewKProjectResolverTest {
             "Ademo3" to "/demo3/kproject.yml",
         ), paths)
     }
+
+    @Test
+    fun testResolverWithGit() {
+        val files = MemoryFiles().root
+        files["demo/kproject.yml"] = """
+            dependencies:
+              - "https://github.com/korlibs/kproject.git/samples/demo2#95696dd942ebc8db4ee9d9f4835ce12d853ff16f"
+        """.trimIndent()
+        val resolver = NewKProjectResolver()
+        val mainProject = resolver.load(files["demo/kproject.yml"])
+        assertEquals(
+            """
+                demo
+                  Ademo2:95696dd942ebc8db4ee9d9f4835ce12d853ff16f
+                    Ademo3
+                      org.jetbrains.compose.runtime-runtime:1.4.1
+            """.trimIndent(),
+            mainProject.dumpDependenciesToString()
+        )
+        assertEquals(listOf("demo", "Ademo2", "Ademo3"), resolver.getProjectNames().toList())
+        val paths = resolver.getAllProjects().map {
+            it.key to ((it.value.dep as? FileRefDependency?)?.path as? MemoryFileRef?)?.path?.fullPath
+        }.toMap()
+
+        assertEquals(mapOf(
+            "demo" to "/demo/kproject.yml",
+            "Ademo2" to null,
+            "Ademo3" to null,
+        ), paths)
+    }
 }

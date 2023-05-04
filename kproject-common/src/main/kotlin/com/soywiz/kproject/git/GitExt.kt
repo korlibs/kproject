@@ -11,10 +11,22 @@ import org.eclipse.jgit.treewalk.*
 import java.io.*
 import java.util.zip.*
 
+fun Git.doPull() {
+    this.pull()
+        .setProgressMonitor(TextProgressMonitor(PrintWriter(System.out)))
+        .call()
+}
+
 fun Git.readFile(ref: String, filePath: String): ByteArray {
     val repo = repository
     RevWalk(repo).use { walk ->
-        val commit: RevCommit = walk.parseCommit(repo.resolve(ref))
+        val resolvedCommit = repo.resolve(ref)
+        val commit: RevCommit = try {
+            walk.parseCommit(resolvedCommit)
+        } catch (e: MissingObjectException) {
+            this.doPull()
+            walk.parseCommit(resolvedCommit)
+        }
         val tree: RevTree = commit.tree
         TreeWalk.forPath(repo, filePath.trimStart('/'), tree).use { treeWalk ->
             if (treeWalk != null) {
