@@ -51,6 +51,7 @@ dependencies:
 /build
 /build.gradle
 
+
 ## deps/build.gradle
 buildscript { repositories { mavenLocal(); mavenCentral(); google(); gradlePluginPortal() } }
 plugins {
@@ -72,10 +73,12 @@ world
 
 
 ## mymodule/.gitignore
+/src
 /.idea
 /.gradle
 /build
 /build.gradle
+
 
 ## mymodule/build.gradle
 buildscript { repositories { mavenLocal(); mavenCentral(); google(); gradlePluginPortal() } }
@@ -101,11 +104,15 @@ dependencies:
 - ../demo3.kproject.yml
 
 
+## modules/Ademo2/.gitarchive
+95696dd942ebc8db4ee9d9f4835ce12d853ff16f
+
 ## modules/Ademo2/.gitignore
 /.idea
 /.gradle
 /build
 /build.gradle
+
 
 ## modules/Ademo2/build.gradle
 buildscript { repositories { mavenLocal(); mavenCentral(); google(); gradlePluginPortal() } }
@@ -147,11 +154,15 @@ dependencies:
 - maven::common::org.jetbrains.compose.runtime:runtime:1.4.1
 
 
+## modules/Ademo3/.gitarchive
+95696dd942ebc8db4ee9d9f4835ce12d853ff16f
+
 ## modules/Ademo3/demo3/.gitignore
 /.idea
 /.gradle
 /build
 /build.gradle
+
 
 ## modules/Ademo3/demo3/build.gradle
 buildscript { repositories { mavenLocal(); mavenCentral(); google(); gradlePluginPortal() } }

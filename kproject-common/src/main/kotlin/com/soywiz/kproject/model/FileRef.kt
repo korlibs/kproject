@@ -38,6 +38,14 @@ data class MemoryFileRef(val files: MemoryFiles, val path: PathInfo) : FileRef {
         operator fun invoke(data: ByteArray): MemoryFileRef = invoke("file.bin", data)
     }
 
+    override fun deleteTree() {
+        for (path in files.map.keys.toList()) {
+            if (path.startsWith("$normalized/")) {
+                files.map.remove(path)
+            }
+        }
+    }
+
     override fun writeBytes(data: ByteArray) {
         //println("WRITE: $normalized = bytes[${data.size}]")
         files.map[normalized] = data
