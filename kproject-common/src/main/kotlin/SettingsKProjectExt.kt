@@ -15,6 +15,15 @@ import java.io.*
 //fun Settings.kproject(path: String) = kprojectOld(path)
 fun Settings.kproject(path: String) = kprojectNew(path)
 
+val Settings.kprojectCache: LinkedHashMap<String, Any?> get() {
+    val extra = extensions.extraProperties
+    val key = "kprojectCache"
+    if (!extra.has(key)) {
+        extra.set(key, LinkedHashMap<String, Any?>())
+    }
+    return extra.get(key) as LinkedHashMap<String, Any?>
+}
+
 fun Settings.kprojectOld(path: String) {
     val file1 = File(rootDir, "$path.kproject.yml")
     val file2 = File(rootDir, "$path/kproject.yml")
@@ -27,6 +36,12 @@ fun Settings.kprojectNew(path: String) {
     val file1 = File(rootDir, "$path.kproject.yml")
     val file2 = File(rootDir, "$path/kproject.yml")
     val file = listOf(file1, file2).firstOrNull { it.exists() } ?: error("Can't find kproject.yml at path $path")
+    if (file.absolutePath in settings.kprojectCache) {
+        //println("Already processed '$file'")
+        return
+    }
+    settings.kprojectCache[file.absolutePath] = true
+
     val results = NewKProjectGradleGenerator(LocalFileRef(rootDir))
         .generate(file.relativeTo(rootDir).path)
     for (result in results) {

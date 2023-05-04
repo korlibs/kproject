@@ -95,6 +95,8 @@ class NewKProjectGradleGenerator(val projectRootFolder: FileRef) {
             //println("buildGradleFile=$buildGradleFile")
         }
 
+        lockWrite()
+
         return outProjects
     }
 
@@ -118,13 +120,55 @@ class NewKProjectGradleGenerator(val projectRootFolder: FileRef) {
                 }
                 val gitWithPathAndRef = dependency.gitWithPathAndRef.copy(path = folder.fullPath)
                 //println(gitWithPathAndRef.path)
-                unzipTo(targetFolder, gitWithPathAndRef.getContent().zipFile)
+                val content = gitWithPathAndRef.getContent()
+
+                // Lock checking
+                val refString = "${dependency.repo.httpsRepo}/${dependency.path.trim('/')}#${dependency.ref}"
+                val checkString = "${content.commitId}:${content.hash}"
+                lockCheck(refString, checkString)
+
+                if (!targetFolder.exists()) {
+                    unzipTo(targetFolder, content.zipFile)
+                }
                 ResolveDep(when {
                     isFinalFile -> targetFolder[pathInfo.name]
                     else -> targetFolder["kproject.yml"]
                 })
             }
             else -> TODO()
+        }
+    }
+
+    private var lockMapLoaded = false
+    private val lockMap: LinkedHashMap<String, String> = LinkedHashMap()
+    private val kprojectLockFile = projectRootFolder["kproject.lock"]
+    fun lockLoad() {
+        if (!lockMapLoaded) {
+            lockMapLoaded = true
+            if (kprojectLockFile.exists()) {
+                for (line in kprojectLockFile.readText().split("\n")) {
+                    if (!line.contains(":::")) continue
+                    val (key, value) = line.trim().split(":::")
+                    lockMap[key.trim()] = value.trim()
+                }
+            }
+        }
+    }
+
+    fun lockCheck(refString: String, checkString: String) {
+        lockLoad()
+        val usedCheckString = lockMap[refString]
+        //println("lockCheck: $refString : $checkString : $usedCheckString")
+
+        if (usedCheckString != null && usedCheckString != checkString) {
+            error("Failed check for $refString:\nactual=$usedCheckString\nexpect=$checkString")
+        }
+        lockMap[refString] = checkString
+    }
+    fun lockWrite() {
+        if (lockMap.isNotEmpty() || kprojectLockFile.exists()) {
+            kprojectLockFile.writeText(lockMap.toList().sortedBy { it.first }.map { it.first + " ::: " + it.second }
+                .joinToString("\n") + "\n")
         }
     }
 }
