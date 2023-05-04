@@ -13,6 +13,14 @@ class DependencyTest {
     }
 
     @Test
+    fun testGitNewNew() {
+        assertEquals(
+            GitDependency("korge-parallax", GitRepository("https://github.com/korlibs/korge-parallax.git"), "/korge-parallax", ref = "dacd7f4c430c48349565295394f723b05841c54a"),
+            Dependency.parseString("https://github.com/korlibs/korge-parallax/tree/dacd7f4c430c48349565295394f723b05841c54a/korge-parallax")
+        )
+    }
+
+    @Test
     fun testMaven() {
         assertEquals(
             MavenDependency(group="org.jetbrains.kotlinx", name="kotlinx-coroutines-core", version= Version("1.6.4"), target="common"),
