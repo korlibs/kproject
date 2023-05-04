@@ -238,6 +238,7 @@ class YamlTest {
 			hello:
 			- a
 			- b
+
 			world:
 			- c
 			- d
