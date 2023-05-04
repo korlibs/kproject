@@ -1,7 +1,0 @@
-{
-  name: "adder",
-  version: "unknown",
-  src: "./",
-  dependencies: [
-  ],
-}

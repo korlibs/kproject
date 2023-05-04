@@ -1,9 +1,0 @@
-{
-  name: "demo",
-  version: "unknown",
-  src: "./",
-  dependencies: [
-    //"bundled::korio",
-    "../../libs/korio",
-  ],
-}
