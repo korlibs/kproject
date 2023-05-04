@@ -2,13 +2,9 @@ name: Testing
 
 on:
   push:
-    branches:
-      - '*'
-    tags-ignore:
-      - 'v*'
-
-env:
-  FORCED_VERSION: "0.0.999-SNAPSHOT"
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
   build:
