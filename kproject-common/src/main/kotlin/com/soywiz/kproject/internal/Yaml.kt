@@ -16,8 +16,8 @@ internal object Yaml {
         else -> str.toIntOrNull() ?: str.toDoubleOrNull() ?: str
     }
 
-    //const val TRACE = true
-    const val TRACE = false
+    const val TRACE = true
+    //const val TRACE = false
     private val EMPTY_SET = setOf<String>()
     private val SET_COMMA_END_ARRAY = setOf(",", "]")
 
@@ -42,10 +42,7 @@ internal object Yaml {
                     list.add(res)
                 } else {
                     if (TRACE) println("${levelStr}CHILD.return: $res")
-                    (res as MutableMap<String, Any?>).forEach { (key, value) ->
-                        if (map != null) { map!![key] = value }
-                    }
-                    return map
+                    return res
                 }
             } else if (lineLevel != null && lineLevel < level) {
                 // parent level

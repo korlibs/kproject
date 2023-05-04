@@ -60,7 +60,7 @@ class KSource(
     fun resolveDir(): File {
         return when (parts.first()) {
             "git" -> {
-                val (_, _, repo, path, version) = parts
+                val (_, repo, path, version) = parts
                 //File(kProj.kproject, "modules/korge-dragonbones/v3.2.0")
                 project.settings.ensureGitSources(project.rname, repo, path, version, "src", project.settings.modulesDir)
             }
