@@ -7,6 +7,9 @@ on:
     tags-ignore:
       - 'v*'
 
+env:
+  FORCED_VERSION: "0.0.999-SNAPSHOT"
+
 jobs:
   build:
 
