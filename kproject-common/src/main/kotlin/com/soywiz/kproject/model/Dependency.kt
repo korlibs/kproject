@@ -77,7 +77,7 @@ fun Dependency.Companion.parseString(str: String, projectFile: FileRef = MemoryF
         when (firstPart) {
             // - git::adder::korlibs/kproject::/modules/adder::54f73b01cea9cb2e8368176ac45f2fca948e57db
             "git" -> {
-                val (_, name, coordinates, path, ref) = parts
+                val (_, name, coordinates, path, ref) = if (parts.size == 4) parts.take(1) + "unknown" + parts.drop(1) else parts
                 return GitDependency(name, GitRepository("https://github.com/${coordinates.pathInfo.fullPath}.git"), path, ref, commit = parts.getOrNull(5), hash = parts.getOrNull(6))
             }
             // - maven::common::org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4

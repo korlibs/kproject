@@ -1,5 +1,7 @@
 package com.soywiz.kproject.model
 
+import java.io.IOException
+
 class NewKProjectResolver {
     class DependencyWithProject(val resolver: NewKProjectResolver, val name: String, val dep: Dependency, val project: NewKProjectModel?) {
         override fun toString(): String = "DependencyWithProject(name='$name', dep=$dep, project=$project)"
@@ -68,7 +70,11 @@ class NewKProjectResolver {
             projectsByDependency[dep] = depEx
             projectsByFile[file] = depEx
             for (dependency in project.dependencies) {
-                resolveDependency(dependency)
+                try {
+                    resolveDependency(dependency)
+                } catch (e: IOException) {
+                    throw Exception("Failed to load dependency $dependency referenced in $file ${e.message}", e)
+                }
             }
             return depEx
         }

@@ -26,6 +26,22 @@ class NewKProjectGradleGenerator(val projectRootFolder: FileRef) {
 
             val proj = project.project
             if (proj != null) {
+                val projSrc = proj.src
+                if (projSrc != null) {
+                    val srcFileRef = buildGradleFile.parent()["src"]
+                    when (projSrc) {
+                        is GitDependency -> {
+                            val content = projSrc.getCachedContentWithLockCheck()
+                            unzipTo(srcFileRef, content.zipFile)
+                        }
+                        is FileRefDependency -> {
+                            (projSrc.path as LocalFileRef).file.copyRecursively((srcFileRef as LocalFileRef).file)
+                        }
+                        else -> TODO("Unsupported dependency")
+                    }
+                }
+                //println("${proj.src}")
+
                 outProjects += ProjectRef(project.name, buildGradleFile.parent())
                 if (!buildGradleFile.parent()[".gitignore"].exists()) {
                     buildGradleFile.parent()[".gitignore"] = """
@@ -113,30 +129,38 @@ class NewKProjectGradleGenerator(val projectRootFolder: FileRef) {
                 //println("projectName=$projectName, dependency=$dependency")
                 val targetFolder = projectRootFolder["modules/${projectName}"]
                 val pathInfo = dependency.path.pathInfo
-                val isFinalFile = pathInfo.name.endsWith("kproject.yml")
-                val folder = when {
-                    isFinalFile -> pathInfo.parent
-                    else -> pathInfo
-                }
-                val gitWithPathAndRef = dependency.gitWithPathAndRef.copy(path = folder.fullPath)
-                //println(gitWithPathAndRef.path)
-                val content = gitWithPathAndRef.getContent()
-
-                // Lock checking
-                val refString = "${dependency.repo.httpsRepo}/${dependency.path.trim('/')}#${dependency.ref}"
-                val checkString = "${content.commitId}:${content.hash}"
-                lockCheck(refString, checkString)
+                val content = dependency.getCachedContentWithLockCheck()
 
                 if (!targetFolder.exists()) {
                     unzipTo(targetFolder, content.zipFile)
                 }
                 ResolveDep(when {
-                    isFinalFile -> targetFolder[pathInfo.name]
+                    pathInfo.isFinalFile -> targetFolder[pathInfo.name]
                     else -> targetFolder["kproject.yml"]
                 })
             }
             else -> TODO()
         }
+    }
+
+    val PathInfo.isFinalFile: Boolean get() = name.endsWith("kproject.yml")
+
+    fun GitDependency.getCachedContentWithLockCheck(): GitRepositoryWithPathAndRef.Content {
+        val dependency = this
+        val pathInfo = dependency.path.pathInfo
+        val folder = when {
+            pathInfo.isFinalFile -> pathInfo.parent
+            else -> pathInfo
+        }
+        val gitWithPathAndRef = dependency.gitWithPathAndRef.copy(path = folder.fullPath)
+        //println(gitWithPathAndRef.path)
+        val content = gitWithPathAndRef.getContent()
+
+        // Lock checking
+        val refString = "${dependency.repo.httpsRepo}/${dependency.path.trim('/')}#${dependency.ref}"
+        val checkString = "${content.commitId}:${content.hash}"
+        lockCheck(refString, checkString)
+        return content
     }
 
     private var lockMapLoaded = false
