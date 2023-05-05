@@ -19,12 +19,12 @@ fun Git.doPull() {
 fun Git.readFile(ref: String, filePath: String): ByteArray {
     val repo = repository
     RevWalk(repo).use { walk ->
-        val resolvedCommit = repo.resolve(ref)
         val commit: RevCommit = try {
-            walk.parseCommit(resolvedCommit)
-        } catch (e: MissingObjectException) {
+            walk.parseCommit(repo.resolve(ref))
+        //} catch (e: MissingObjectException) {
+        } catch (e: Throwable) {
             this.doPull()
-            walk.parseCommit(resolvedCommit)
+            walk.parseCommit(repo.resolve(ref))
         }
         val tree: RevTree = commit.tree
         TreeWalk.forPath(repo, filePath.trimStart('/'), tree).use { treeWalk ->
