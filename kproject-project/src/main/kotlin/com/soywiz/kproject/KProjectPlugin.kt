@@ -62,6 +62,7 @@ class KProjectPlugin : Plugin<Project> {
                 macosX64()
                 mingwX64()
                 linuxX64()
+                linuxArm64()
             }
             if (hasTarget(KProjectTarget.MOBILE)) {
                 iosX64()
@@ -89,6 +90,7 @@ class KProjectPlugin : Plugin<Project> {
                         createPair("macosArm64").dependsOn(macos)
                         val linux = createPair("linux").dependsOn(posix)
                         createPair("linuxX64").dependsOn(linux)
+                        createPair("linuxArm64").dependsOn(linux)
                     }
                     if (hasTarget(KProjectTarget.MOBILE)) {
                         val ios = createPair("ios").dependsOn(apple)
