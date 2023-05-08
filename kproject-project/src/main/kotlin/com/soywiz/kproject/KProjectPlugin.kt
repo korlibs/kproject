@@ -32,7 +32,7 @@ class KProjectPlugin : Plugin<Project> {
             if (hasTarget(KProjectTarget.JVM)) {
                 jvm {
                     compilations.all {
-                        it.kotlinOptions.jvmTarget = "1.8"
+                        it.kotlinOptions.jvmTarget = "11"
                     }
                     //withJava()
                     testRuns.maybeCreate("test").executionTask.configure {
@@ -46,9 +46,15 @@ class KProjectPlugin : Plugin<Project> {
                 }
                 project.extensions.getByType(LibraryExtension::class.java).apply {
                     compileSdk = ANDROID_DEFAULT_COMPILE_SDK
+                    namespace = ("${project.group}.${project.name}").replace("-", ".")
+                    sourceSets.apply {
+                        maybeCreate("main").apply {
+                            manifest.srcFile(AndroidConfig.getAndroidManifestFile(project))
+                        }
+                    }
                 }
-                println(project.extensions.getByName("android"))
-                println(project.extensions.getByName("android")::class)
+                //println(project.extensions.getByName("android"))
+                //println(project.extensions.getByName("android")::class)
             }
             if (hasTarget(KProjectTarget.JS)) {
                 js(KotlinJsCompilerType.IR) {
