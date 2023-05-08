@@ -1,6 +1,9 @@
 [versions]
 kotlin = "1.8.21"
 gson = "2.8.6"
+android-build-gradle = "7.3.1"
+#android-build-gradle = "7.4.0-beta02"
 
 [libraries]
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+android-build-gradle = { module = "com.android.tools.build:gradle", version.ref = "android-build-gradle" }

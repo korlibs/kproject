@@ -1,5 +1,6 @@
 package com.soywiz.kproject
 
+import com.android.build.gradle.*
 import com.soywiz.kproject.model.*
 import com.soywiz.kproject.util.*
 import org.gradle.api.*
@@ -39,6 +40,16 @@ class KProjectPlugin : Plugin<Project> {
                     }
                 }
             }
+            if (hasTarget(KProjectTarget.ANDROID)) {
+                project.plugins.applyOnce("com.android.library")
+                android {
+                }
+                project.extensions.getByType(LibraryExtension::class.java).apply {
+                    compileSdk = ANDROID_DEFAULT_COMPILE_SDK
+                }
+                println(project.extensions.getByName("android"))
+                println(project.extensions.getByName("android")::class)
+            }
             if (hasTarget(KProjectTarget.JS)) {
                 js(KotlinJsCompilerType.IR) {
                     browser {
@@ -76,6 +87,9 @@ class KProjectPlugin : Plugin<Project> {
                 val jvmAndroid = createPair("jvmAndroid").dependsOn(concurrent)
                 if (hasTarget(KProjectTarget.JVM)) {
                     val jvm = createPair("jvm").dependsOn(jvmAndroid)
+                }
+                if (hasTarget(KProjectTarget.ANDROID)) {
+                    val android = createPair("android").dependsOn(jvmAndroid)
                 }
                 if (hasTarget(KProjectTarget.JS)) {
                     val js = createPair("js")
@@ -122,3 +136,7 @@ fun PluginContainer.applyOnce(id: String) {
         apply(id)
     }
 }
+
+private const val ANDROID_DEFAULT_MIN_SDK = 18
+private const val ANDROID_DEFAULT_COMPILE_SDK = 30
+private const val ANDROID_DEFAULT_TARGET_SDK = 30
