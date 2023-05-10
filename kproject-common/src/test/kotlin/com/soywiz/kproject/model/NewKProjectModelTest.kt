@@ -32,4 +32,13 @@ class NewKProjectModelTest {
         assertEquals("GradlePlugin(name=org.jetbrains.compose)", project.plugins.joinToString(",") { it.toString() })
         assertEquals("MavenDependency(group=com.soywiz.korlibs.korge2, name=korge, version=, target=common),MavenDependency(group=org.jetbrains.compose.runtime, name=runtime, version=1.4.0, target=common)", project.dependencies.joinToString(",") { it.toString() })
     }
+
+    @Test
+    fun testEdgeCases() {
+        assertEquals(emptyList(), NewKProjectModel.parseObject(Yaml.decode("""
+            dependencies:
+        """.trimIndent())).dependencies)
+        assertEquals(emptyList(), NewKProjectModel.parseObject(Yaml.decode("dependencies:")).dependencies)
+        assertEquals(emptyList(), NewKProjectModel.parseObject(Yaml.decode("")).dependencies)
+    }
 }
