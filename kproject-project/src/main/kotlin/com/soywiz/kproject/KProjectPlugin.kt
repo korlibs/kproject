@@ -1,12 +1,14 @@
 package com.soywiz.kproject
 
 import com.android.build.gradle.*
+import com.soywiz.kproject.internal.*
 import com.soywiz.kproject.model.*
 import com.soywiz.kproject.util.*
 import org.gradle.api.*
 import org.gradle.api.plugins.*
 import org.jetbrains.kotlin.gradle.dsl.*
 import org.jetbrains.kotlin.gradle.plugin.*
+import java.io.File
 
 @Suppress("unused")
 class KProjectPlugin : Plugin<Project> {
@@ -16,6 +18,21 @@ class KProjectPlugin : Plugin<Project> {
         project.plugins.applyOnce("kotlin-multiplatform")
         //project.repositories()
         val kotlin = project.extensions.getByType(KotlinMultiplatformExtension::class.java)
+
+        val depsKprojectYml = File(project.rootProject.rootDir, "deps.kproject.yml")
+        val info = when {
+            depsKprojectYml.exists() -> Yaml.decode(depsKprojectYml.readText())
+            else -> null
+        }.dyn
+
+        fun getPropertyValue(name: String, default: String): String {
+            return info[name].toStringOrNull()
+                ?: project.findProperty(name)?.toString()
+                ?: default
+        }
+
+        val jvmVersion = getPropertyValue("kproject.jvm.version", "1.8")
+        val androidJvmVersion = getPropertyValue("kproject.android.jvm.version", "11")
 
         //val kprojectYml = File(project.projectDir, "kproject.yml")
         //val kproject = if (kprojectYml.exists()) KProject.load(kprojectYml, KSet(File("modules")), true) else null
@@ -32,7 +49,7 @@ class KProjectPlugin : Plugin<Project> {
             if (hasTarget(KProjectTarget.JVM)) {
                 jvm {
                     compilations.all {
-                        it.kotlinOptions.jvmTarget = "11"
+                        it.kotlinOptions.jvmTarget = jvmVersion
                     }
                     //withJava()
                     testRuns.maybeCreate("test").executionTask.configure {
@@ -43,6 +60,9 @@ class KProjectPlugin : Plugin<Project> {
             if (hasTarget(KProjectTarget.ANDROID)) {
                 project.plugins.applyOnce("com.android.library")
                 android {
+                    compilations.all {
+                        it.kotlinOptions.jvmTarget = androidJvmVersion
+                    }
                 }
                 project.extensions.getByType(LibraryExtension::class.java).apply {
                     compileSdk = ANDROID_DEFAULT_COMPILE_SDK

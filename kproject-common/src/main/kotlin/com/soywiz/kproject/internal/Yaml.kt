@@ -1,6 +1,6 @@
 package com.soywiz.kproject.internal
 
-internal object Yaml {
+object Yaml {
     fun decode(str: String) = read(ListReader(tokenize(str)), level = 0)
     fun read(str: String) = read(ListReader(tokenize(str)), level = 0)
 
@@ -115,7 +115,7 @@ internal object Yaml {
         return map ?: list
     }
 
-    fun ListReader<Token>.readId(): List<Token> {
+    private fun ListReader<Token>.readId(): List<Token> {
         val tokens = arrayListOf<Token>()
         while (hasMore) {
             val token = peek()
@@ -129,7 +129,7 @@ internal object Yaml {
         return tokens
     }
 
-    fun readOrString(s: ListReader<Token>, level: Int, delimiters: Set<String>, supportNonSpaceSymbols: Boolean): Any? {
+    private fun readOrString(s: ListReader<Token>, level: Int, delimiters: Set<String>, supportNonSpaceSymbols: Boolean): Any? {
         val sp = s.peek()
         return if (sp is Token.ID || (supportNonSpaceSymbols && sp is Token.SYMBOL && !sp.isNextWhite)) {
             var str = ""
