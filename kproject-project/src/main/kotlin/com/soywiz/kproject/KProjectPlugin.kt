@@ -55,15 +55,6 @@ class KProjectPlugin : Plugin<Project> {
                     //withJava()
                     testRuns.maybeCreate("test").executionTask.configure {
                         it.useJUnit()
-                        it.testLogging.events = mutableSetOf(
-                            //TestLogEvent.STARTED, TestLogEvent.PASSED,
-                            TestLogEvent.SKIPPED,
-                            TestLogEvent.FAILED,
-                            TestLogEvent.STANDARD_OUT, TestLogEvent.STANDARD_ERROR
-                        )
-                        it.testLogging.exceptionFormat = TestExceptionFormat.FULL
-                        it.testLogging.showStackTraces = true
-                        it.testLogging.showStandardStreams = true
                     }
                 }
             }
@@ -150,6 +141,20 @@ class KProjectPlugin : Plugin<Project> {
                 }
             }
             //println("KProjectPlugin: $project")
+        }
+
+        project.tasks.withType(org.gradle.api.tasks.testing.AbstractTestTask::class.java).all {
+            it.testLogging {
+                it.events = mutableSetOf(
+                    //TestLogEvent.STARTED, TestLogEvent.PASSED,
+                    TestLogEvent.SKIPPED,
+                    TestLogEvent.FAILED,
+                    TestLogEvent.STANDARD_OUT, TestLogEvent.STANDARD_ERROR
+                )
+                it.exceptionFormat = TestExceptionFormat.FULL
+                it.showStackTraces = true
+                it.showStandardStreams = true
+            }
         }
 
     }
