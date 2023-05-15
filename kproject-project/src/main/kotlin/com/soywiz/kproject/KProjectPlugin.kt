@@ -53,7 +53,9 @@ class KProjectPlugin : Plugin<Project> {
                     }
                     //withJava()
                     testRuns.maybeCreate("test").executionTask.configure {
-                        it.useJUnitPlatform()
+                        it.useJUnit()
+                        it.testLogging.showStackTraces = true
+                        it.testLogging.showStandardStreams = true
                     }
                 }
             }
