@@ -132,6 +132,7 @@ class KProjectPlugin : Plugin<Project> {
                         val linux = createPair("linux").dependsOn(posix)
                         createPair("linuxX64").dependsOn(linux)
                         createPair("linuxArm64").dependsOn(linux)
+                        createPair("mingwX64").dependsOn(native)
                     }
                     if (hasTarget(KProjectTarget.MOBILE)) {
                         val ios = createPair("ios").dependsOn(apple)
