@@ -6,6 +6,7 @@ import com.soywiz.kproject.model.*
 import com.soywiz.kproject.util.*
 import org.gradle.api.*
 import org.gradle.api.plugins.*
+import org.gradle.api.tasks.testing.logging.*
 import org.jetbrains.kotlin.gradle.dsl.*
 import org.jetbrains.kotlin.gradle.plugin.*
 import java.io.File
@@ -54,6 +55,13 @@ class KProjectPlugin : Plugin<Project> {
                     //withJava()
                     testRuns.maybeCreate("test").executionTask.configure {
                         it.useJUnit()
+                        it.testLogging.events = mutableSetOf(
+                            //TestLogEvent.STARTED, TestLogEvent.PASSED,
+                            TestLogEvent.SKIPPED,
+                            TestLogEvent.FAILED,
+                            TestLogEvent.STANDARD_OUT, TestLogEvent.STANDARD_ERROR
+                        )
+                        it.testLogging.exceptionFormat = TestExceptionFormat.FULL
                         it.testLogging.showStackTraces = true
                         it.testLogging.showStandardStreams = true
                     }
