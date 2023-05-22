@@ -45,7 +45,8 @@ data class MavenDependency(
     override val version: Version,
     val target: String = "common",
 ) : Dependency {
-    val coordinates: String = if (version.str.isNotBlank()) "$group:$name:${version.str}" else "$group:$name"
+    val hasVersion get() = version.str.isNotBlank()
+    val coordinates: String = if (hasVersion) "$group:$name:${version.str}" else "$group:$name"
     override val projectName: String = "$group-$name"
 
     companion object {

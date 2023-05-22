@@ -14,4 +14,11 @@ enum class KProjectTarget(
     val isAndroid: Boolean get() = this == ANDROID
     val isJvmOrAndroid: Boolean get() = this == JVM || this == ANDROID
     val isJs: Boolean get() = this == JS
+
+    companion object {
+        val VALUES = values()
+        val BY_NAME = VALUES.associateBy { it.bname }
+
+        operator fun get(name: String): KProjectTarget? = BY_NAME[name.lowercase()]
+    }
 }

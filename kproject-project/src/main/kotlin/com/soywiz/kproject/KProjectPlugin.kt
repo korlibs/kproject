@@ -25,6 +25,7 @@ class KProjectPlugin : Plugin<Project> {
             depsKprojectYml.exists() -> Yaml.decode(depsKprojectYml.readText())
             else -> null
         }.dyn
+        val info2 = NewKProjectModel.loadFile(depsKprojectYml.fileRef)
 
         fun getPropertyValue(name: String, default: String): String {
             return info[name].toStringOrNull()
@@ -41,8 +42,7 @@ class KProjectPlugin : Plugin<Project> {
         // @TODO: Configure
         fun hasTarget(name: KProjectTarget): Boolean {
             if (name.isKotlinNative && isWindowsOrLinuxArm) return false
-            //return kproject?.hasTarget(name) ?: true
-            return true
+            return info2.hasTarget(name)
         }
 
         kotlin.apply {

@@ -41,4 +41,50 @@ class NewKProjectModelTest {
         assertEquals(emptyList(), NewKProjectModel.parseObject(Yaml.decode("dependencies:")).dependencies)
         assertEquals(emptyList(), NewKProjectModel.parseObject(Yaml.decode("")).dependencies)
     }
+
+    @Test
+    fun testHasTarget() {
+        checkKProject(
+            """
+            """
+        ) {
+            assertEquals("11111", targetsStr())
+        }
+
+        checkKProject(
+            """
+                targets: [jvm]
+            """
+        ) {
+            assertEquals("10000", targetsStr())
+        }
+    }
+
+    @Test
+    fun testVersionSubstitution() {
+        checkKProject(
+            """
+            """
+        ) {
+            assertEquals(null, versions["com.soywiz.korlibs.korge2:korge"])
+        }
+
+        checkKProject(
+            """
+            targets: [jvm]
+            dependencies:
+            - https://github.com/korlibs/korge-audio-formats/tree/0.0.1/korau-mod##05abfd6f151fa578e0c690f7725d741784bdfe53
+            versions:
+            - "com.soywiz.korlibs.korge2:korge": "4.0.0"
+            """
+        ) {
+            assertEquals("4.0.0", versions["com.soywiz.korlibs.korge2:korge"])
+        }
+    }
+    val targets = listOf(KProjectTarget.JVM, KProjectTarget.JS, KProjectTarget.ANDROID, KProjectTarget.DESKTOP, KProjectTarget.MOBILE)
+    fun NewKProjectModel.targetsStr(): String = this@NewKProjectModelTest.targets.joinToString("") { if (hasTarget(it)) "1" else "0" }
+
+    fun checkKProject(model: String, block: NewKProjectModel.() -> Unit) {
+        NewKProjectModel.parseObject(Yaml.decode(model.trimIndent())).apply(block)
+    }
 }

@@ -11,8 +11,16 @@ data class NewKProjectModel(
     val version: String? = null,
     val targets: List<String> = emptyList(),
     val plugins: List<KPPlugin> = emptyList(),
-    val dependencies: List<Dependency> = emptyList()
+    val dependencies: List<Dependency> = emptyList(),
+    val versions: Map<String, String> = emptyMap(),
 ) {
+    val targetsSet = targets.map { KProjectTarget[it] }.toSet()
+
+    fun hasTarget(target: KProjectTarget): Boolean {
+        if (targetsSet.isEmpty()) return true
+        return target in targetsSet
+    }
+
     companion object
 }
 
@@ -23,6 +31,10 @@ fun NewKProjectModel.Companion.loadFile(file: FileRef): NewKProjectModel {
 fun NewKProjectModel.Companion.parseObject(data: Any?, file: FileRef = MemoryFileRef("unknown.kproject.yml", byteArrayOf())): NewKProjectModel {
     val data = data.dyn
 
+    //println("data[\"versions\"]=${data["versions"]}")
+
+    val dataVersions = data["versions"]
+
     return NewKProjectModel(
         file = file,
         name = data["name"].toStringOrNull() ?: (if (file.name != "kproject.yml") file.name.removeSuffix(".kproject.yml") else file.parent().name),
@@ -31,5 +43,12 @@ fun NewKProjectModel.Companion.parseObject(data: Any?, file: FileRef = MemoryFil
         targets = data["targets"].list.map { it.str },
         plugins = data["plugins"].list.map { KPPlugin.parseObject(it.value) },
         dependencies = data["dependencies"].list.map { Dependency.parseObject(it.value, file) },
+        versions = when (dataVersions.value) {
+            is List<*> -> dataVersions.list.associate {
+                val entry = it.map.entries.first()
+                entry.key.str to entry.value.str
+            }
+            else -> dataVersions.map.toList().associate { it.first.str to it.second.str }
+        }
     )
 }

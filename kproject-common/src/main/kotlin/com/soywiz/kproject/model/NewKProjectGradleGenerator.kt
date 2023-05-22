@@ -6,12 +6,18 @@ import com.soywiz.kproject.version.*
 
 class NewKProjectGradleGenerator(val projectRootFolder: FileRef) {
     val resolver = NewKProjectResolver()
+    var rootPath: String? = null
+    var rootDepWithProj: NewKProjectResolver.DependencyWithProject? = null
 
     data class ResolveDep(val file: FileRef, val folder: FileRef = file.parent())
     data class ProjectRef(val projectName: String, val projectDir: FileRef)
 
     fun generate(path: String) : List<ProjectRef> {
-        resolver.load(projectRootFolder[path])
+        val depWithProj = resolver.load(projectRootFolder[path])
+        if (rootPath == null) {
+            rootPath = path
+            rootDepWithProj = depWithProj
+        }
 
         val outProjects = arrayListOf<ProjectRef>()
         for (project in resolver.getAllProjects().values) {
@@ -86,7 +92,14 @@ class NewKProjectGradleGenerator(val projectRootFolder: FileRef) {
                         val ddep = dep.dep
                         when (ddep) {
                             is MavenDependency -> {
-                                appendLine("  add(\"${ddep.target}MainApi\", ${ddep.coordinates.quoted})")
+                                val versionRef = rootDepWithProj?.project?.versions?.get(ddep.coordinates)
+                                //println("ddep.coordinates=${ddep.coordinates}, versionRef=$versionRef :: ${rootDepWithProj?.project?.versions}")
+                                val rddep = when {
+                                    ddep.hasVersion -> ddep
+                                    else -> ddep.copy(version = Version(rootDepWithProj?.project?.versions?.get(ddep.coordinates) ?: ""))
+                                }
+
+                                appendLine("  add(\"${ddep.target}MainApi\", ${rddep.coordinates.quoted})")
                             }
                             else -> {
                                 appendLine("  add(\"commonMainApi\", project(${":${dep.name}".quoted}))")
