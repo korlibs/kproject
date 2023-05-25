@@ -20,6 +20,9 @@ class NewKProjectGradleGeneratorTest {
             src: "https://github.com/korlibs/kproject.git/samples/demo1/content#08f93c2e49b65d1d8258e4e1408580772558b038"
             dependencies:
             - "https://github.com/korlibs/kproject.git/samples/demo2#95696dd942ebc8db4ee9d9f4835ce12d853ff16f"
+            testDependencies:
+            - maven::jvm::org.mockito:mockito-core:5.3.1
+            - io.mockk:mockk-android:1.13.5::jvm
         """.trimIndent()
 
         NewKProjectGradleGenerator(files)
@@ -44,6 +47,9 @@ dependencies:
 src: "https://github.com/korlibs/kproject.git/samples/demo1/content#08f93c2e49b65d1d8258e4e1408580772558b038"
 dependencies:
 - "https://github.com/korlibs/kproject.git/samples/demo2#95696dd942ebc8db4ee9d9f4835ce12d853ff16f"
+testDependencies:
+- maven::jvm::org.mockito:mockito-core:5.3.1
+- io.mockk:mockk-android:1.13.5::jvm
 
 ## deps/.gitignore
 /.idea
@@ -59,8 +65,8 @@ plugins {
   id("org.jetbrains.kotlin.plugin.serialization")
 }
 dependencies {
-  add("commonMainApi", project(":mymodule"))
   add("commonMainApi", "org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.0")
+  add("commonMainApi", project(":mymodule"))
 }
 File extraGradle = file("build.extra.gradle")
 if (extraGradle.exists()) {
@@ -87,6 +93,8 @@ plugins {
 }
 dependencies {
   add("commonMainApi", project(":Ademo2"))
+  add("jvmTestApi", "org.mockito:mockito-core:5.3.1")
+  add("jvmTestApi", "io.mockk:mockk-android:1.13.5")
 }
 File extraGradle = file("build.extra.gradle")
 if (extraGradle.exists()) {
@@ -182,9 +190,10 @@ if (extraGradle.exists()) {
 https://github.com/korlibs/kproject.git/samples/demo1/content#08f93c2e49b65d1d8258e4e1408580772558b038 ::: 08f93c2e49b65d1d8258e4e1408580772558b038:0c0e030c04f1f9fafc0c08f5f006f4fe07fff30608fc07f2f10b03fc07030f05
 https://github.com/korlibs/kproject.git/samples/demo2#95696dd942ebc8db4ee9d9f4835ce12d853ff16f ::: 95696dd942ebc8db4ee9d9f4835ce12d853ff16f:f10dfcf9f2f409050d060a0f00f00a0f0cf80b09fbfefa02fe05f70bf104f105
 https://github.com/korlibs/kproject.git/samples/demo3.kproject.yml#95696dd942ebc8db4ee9d9f4835ce12d853ff16f ::: 95696dd942ebc8db4ee9d9f4835ce12d853ff16f:0e040e0a0ffaf602050d080501fd05f5f102f80afcfff60500ffff08f606fff6
-            """.trimIndent(),
+""".trimIndent(),
             out.joinToString("\n").trim()
                 .replace(KProjectVersion.VERSION, "0.0.1-SNAPSHOT")
+                .trim()
         )
     }
 }

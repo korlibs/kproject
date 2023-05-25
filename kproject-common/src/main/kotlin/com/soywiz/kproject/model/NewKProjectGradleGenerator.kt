@@ -88,28 +88,33 @@ class NewKProjectGradleGenerator(val projectRootFolder: FileRef) {
                     //}
 
                     appendLine("dependencies {")
-                    for (dep in project.dependencies) {
-                        val ddep = dep.dep
-                        when (ddep) {
-                            is MavenDependency -> {
-                                val versionRef = rootDepWithProj?.project?.versions?.get(ddep.coordinates)
-                                //println("ddep.coordinates=${ddep.coordinates}, versionRef=$versionRef :: ${rootDepWithProj?.project?.versions}")
-                                val rddep = when {
-                                    ddep.hasVersion -> ddep
-                                    else -> ddep.copy(version = Version(rootDepWithProj?.project?.versions?.get(ddep.coordinates) ?: ""))
-                                }
-
-                                appendLine("  add(\"${ddep.target}MainApi\", ${rddep.coordinates.quoted})")
-                            }
-                            else -> {
-                                appendLine("  add(\"commonMainApi\", project(${":${dep.name}".quoted}))")
-                            }
-                        }
-                    }
                     for (plugin in gradlePlugins) {
                         when (plugin) {
                             "serialization" -> {
                                 appendLine("  add(\"commonMainApi\", \"org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.0\")")
+                            }
+                        }
+                    }
+                    for ((depName, deps) in listOf(
+                        "Main" to project.dependencies,
+                        "Test" to project.testDependencies,
+                    )) {
+                        for (dep in deps) {
+                            val ddep = dep.dep
+                            when (ddep) {
+                                is MavenDependency -> {
+                                    val versionRef = rootDepWithProj?.project?.versions?.get(ddep.coordinates)
+                                    //println("ddep.coordinates=${ddep.coordinates}, versionRef=$versionRef :: ${rootDepWithProj?.project?.versions}")
+                                    val rddep = when {
+                                        ddep.hasVersion -> ddep
+                                        else -> ddep.copy(version = Version(rootDepWithProj?.project?.versions?.get(ddep.coordinates) ?: ""))
+                                    }
+
+                                    appendLine("  add(\"${ddep.target}${depName}Api\", ${rddep.coordinates.quoted})")
+                                }
+                                else -> {
+                                    appendLine("  add(\"common${depName}Api\", project(${":${dep.name}".quoted}))")
+                                }
                             }
                         }
                     }

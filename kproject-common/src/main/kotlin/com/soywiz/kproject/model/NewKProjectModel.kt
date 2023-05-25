@@ -12,8 +12,11 @@ data class NewKProjectModel(
     val targets: List<String> = emptyList(),
     val plugins: List<KPPlugin> = emptyList(),
     val dependencies: List<Dependency> = emptyList(),
+    val testDependencies: List<Dependency> = emptyList(),
     val versions: Map<String, String> = emptyMap(),
 ) {
+    val allDependencies by lazy { dependencies + testDependencies }
+
     val targetsSet = targets.map { KProjectTarget[it] }.toSet()
 
     fun hasTarget(target: KProjectTarget): Boolean {
@@ -43,6 +46,7 @@ fun NewKProjectModel.Companion.parseObject(data: Any?, file: FileRef = MemoryFil
         targets = data["targets"].list.map { it.str },
         plugins = data["plugins"].list.map { KPPlugin.parseObject(it.value) },
         dependencies = data["dependencies"].list.map { Dependency.parseObject(it.value, file) },
+        testDependencies = data["testDependencies"].list.map { Dependency.parseObject(it.value, file) },
         versions = when (dataVersions.value) {
             is List<*> -> dataVersions.list.associate {
                 val entry = it.map.entries.first()
