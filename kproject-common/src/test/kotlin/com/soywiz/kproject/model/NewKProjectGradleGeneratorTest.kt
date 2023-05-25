@@ -1,6 +1,5 @@
 package com.soywiz.kproject.model
 
-import com.soywiz.kproject.internal.*
 import kotlin.test.*
 
 class NewKProjectGradleGeneratorTest {

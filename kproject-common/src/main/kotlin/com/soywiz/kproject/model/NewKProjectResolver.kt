@@ -13,6 +13,13 @@ class NewKProjectResolver {
             } ?: emptyList()
         }
 
+        val testDependencies by lazy {
+            project?.testDependencies?.map {
+                //println(it)
+                resolver.getProjectByDependency(it)
+            } ?: emptyList()
+        }
+
         fun dumpDependenciesToString(): String {
             val out = arrayListOf<String>()
             dumpDependencies { level, name -> out += "${"  ".repeat(level)}$name" }
@@ -33,8 +40,10 @@ class NewKProjectResolver {
                 this.dep.version != Dependency.MAX_VERSION -> "$name:${this.dep.version}"
                 else -> name
             })
-            for (dependency in dependencies) {
-                dependency.dumpDependencies(level + 1, explored, gen)
+            for (deps in listOf(dependencies, testDependencies)) {
+                for (dependency in deps) {
+                    dependency.dumpDependencies(level + 1, explored, gen)
+                }
             }
         }
     }
@@ -69,7 +78,7 @@ class NewKProjectResolver {
             projectsByName[projectName] = depEx
             projectsByDependency[dep] = depEx
             projectsByFile[file] = depEx
-            for (dependency in project.dependencies) {
+            for (dependency in project.allDependencies) {
                 try {
                     resolveDependency(dependency)
                 } catch (e: IOException) {
