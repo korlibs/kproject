@@ -48,7 +48,7 @@ class KProjectPlugin : Plugin<Project> {
         kotlin.apply {
             metadata()
             if (hasTarget(KProjectTarget.JVM)) {
-                jvm {
+                jvm().apply {
                     compilations.all {
                         it.kotlinOptions.jvmTarget = jvmVersion
                     }
@@ -60,7 +60,7 @@ class KProjectPlugin : Plugin<Project> {
             }
             if (hasTarget(KProjectTarget.ANDROID)) {
                 project.plugins.applyOnce("com.android.library")
-                android {
+                android().apply {
                     compilations.all {
                         it.kotlinOptions.jvmTarget = androidJvmVersion
                     }
@@ -80,12 +80,13 @@ class KProjectPlugin : Plugin<Project> {
             if (hasTarget(KProjectTarget.JS)) {
                 js(KotlinJsCompilerType.IR) {
                     browser {
-                        commonWebpackConfig {
-                            cssSupport {
-                                it.enabled.set(true)
-                            }
-                        }
+                        //commonWebpackConfig { cssSupport { it.enabled.set(true) } }
                     }
+                }
+            }
+            if (hasTarget(KProjectTarget.WASM)) {
+                wasm().apply {
+                    browser()
                 }
             }
             //println(isWindows)

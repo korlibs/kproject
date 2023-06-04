@@ -20,7 +20,13 @@ testDependencies:
 
 
 ## deps/build.gradle
-buildscript { repositories { mavenLocal(); mavenCentral(); google(); gradlePluginPortal() } }
+buildscript {
+    repositories {
+        mavenLocal(); mavenCentral(); google(); gradlePluginPortal()
+        maven { url = uri("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev") }
+        maven { url = uri("https://maven.pkg.jetbrains.space/kotlin/p/wasm/experimental") }
+    }
+}
 plugins {
   id("com.soywiz.kproject") version "0.0.1-SNAPSHOT"
   id("org.jetbrains.kotlin.plugin.serialization")
@@ -47,7 +53,13 @@ world
 
 
 ## mymodule/build.gradle
-buildscript { repositories { mavenLocal(); mavenCentral(); google(); gradlePluginPortal() } }
+buildscript {
+    repositories {
+        mavenLocal(); mavenCentral(); google(); gradlePluginPortal()
+        maven { url = uri("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev") }
+        maven { url = uri("https://maven.pkg.jetbrains.space/kotlin/p/wasm/experimental") }
+    }
+}
 plugins {
   id("com.soywiz.kproject") version "0.0.1-SNAPSHOT"
 }
@@ -82,7 +94,13 @@ dependencies:
 
 
 ## modules/Ademo2/build.gradle
-buildscript { repositories { mavenLocal(); mavenCentral(); google(); gradlePluginPortal() } }
+buildscript {
+    repositories {
+        mavenLocal(); mavenCentral(); google(); gradlePluginPortal()
+        maven { url = uri("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev") }
+        maven { url = uri("https://maven.pkg.jetbrains.space/kotlin/p/wasm/experimental") }
+    }
+}
 plugins {
   id("com.soywiz.kproject") version "0.0.1-SNAPSHOT"
 }
@@ -131,7 +149,13 @@ dependencies:
 
 
 ## modules/Ademo3/demo3/build.gradle
-buildscript { repositories { mavenLocal(); mavenCentral(); google(); gradlePluginPortal() } }
+buildscript {
+    repositories {
+        mavenLocal(); mavenCentral(); google(); gradlePluginPortal()
+        maven { url = uri("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev") }
+        maven { url = uri("https://maven.pkg.jetbrains.space/kotlin/p/wasm/experimental") }
+    }
+}
 plugins {
   id("com.soywiz.kproject") version "0.0.1-SNAPSHOT"
 }

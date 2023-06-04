@@ -21,6 +21,17 @@ subprojects {
     apply plugin: "kotlin"
     apply plugin: 'maven-publish'
 
+    kotlin {
+        jvmToolchain(11) // Target version of generated JVM bytecode. See 7️⃣
+    }
+
+    tasks
+        .withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask.class)
+        .configureEach {
+            compilerOptions.apiVersion = org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_1_7
+            compilerOptions.languageVersion = org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_1_7
+        }
+
     repositories {
         mavenLocal()
         mavenCentral()

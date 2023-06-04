@@ -7,10 +7,12 @@ enum class KProjectTarget(
     JS("js"),
     ANDROID("android"),
     DESKTOP("desktop"),
-    MOBILE("mobile");
+    MOBILE("mobile"),
+    WASM("wasm");
 
     val isKotlinNative: Boolean get() = this == DESKTOP || this == MOBILE
     val isJvm: Boolean get() = this == JVM
+    val isWasm: Boolean get() = this == WASM
     val isAndroid: Boolean get() = this == ANDROID
     val isJvmOrAndroid: Boolean get() = this == JVM || this == ANDROID
     val isJs: Boolean get() = this == JS
