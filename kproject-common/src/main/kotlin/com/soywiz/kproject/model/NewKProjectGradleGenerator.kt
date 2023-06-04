@@ -120,9 +120,8 @@ class NewKProjectGradleGenerator(val projectRootFolder: FileRef) {
                     }
                     appendLine("}")
 
-                    appendLine("File extraGradle = file(\"build.extra.gradle\")")
-                    appendLine("if (extraGradle.exists()) {")
-                    appendLine("    apply from: extraGradle")
+                    appendLine("[file(\"build.extra.gradle\"), file(\"build.extra.gradle.kts\")].each { extraGradle ->")
+                    appendLine("  if (extraGradle.exists()) apply from: extraGradle")
                     appendLine("}")
                 })
             }
