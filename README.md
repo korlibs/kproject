@@ -2,6 +2,8 @@
 
 YAML-based source-based kotlin module descriptors that runs on top of gradle.
 
+## [Full documentation & presentation](http://docs.korge.org/kproject/)
+
 ## Define your kotlin multiplatform multi-module projects like this:
 
 ### `deps.kproject.yml`
