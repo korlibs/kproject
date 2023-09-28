@@ -16,16 +16,27 @@ fun Git.doPull() {
         .call()
 }
 
+fun RevWalk.getCommit(git: Git, ref: String): RevCommit {
+    val repo = git.repository
+    val walk = this
+    return try {
+        walk.parseCommit(repo.resolve(ref))
+        //} catch (e: MissingObjectException) {
+    } catch (e: Throwable) {
+        git.doPull()
+        try {
+            walk.parseCommit(repo.resolve(ref))
+            //} catch (e: MissingObjectException) {
+        } catch (e: Throwable) {
+            throw Exception("Can't find ref '$ref' in $repo", e)
+        }
+    }
+}
+
 fun Git.readFile(ref: String, filePath: String): ByteArray {
     val repo = repository
     RevWalk(repo).use { walk ->
-        val commit: RevCommit = try {
-            walk.parseCommit(repo.resolve(ref))
-        //} catch (e: MissingObjectException) {
-        } catch (e: Throwable) {
-            this.doPull()
-            walk.parseCommit(repo.resolve(ref))
-        }
+        val commit: RevCommit = walk.getCommit(this, ref)
         val tree: RevTree = commit.tree
         TreeWalk.forPath(repo, filePath.trimStart('/'), tree).use { treeWalk ->
             if (treeWalk != null) {
