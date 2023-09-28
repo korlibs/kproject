@@ -77,6 +77,6 @@ data class LocalFileRef(val file: File) : FileRef {
 data class GitFileRef(val git: GitRepository, val ref: String, val path: String) : FileRef {
     override val name: String get() = PathInfo(path).name
     override fun writeBytes(data: ByteArray) = TODO()
-    override fun readBytes(): ByteArray = git.getGit().readFile(ref, path)
+    override fun readBytes(): ByteArray = git.useGit { it.readFile(ref, path) }
     override fun get(path: String): GitFileRef = GitFileRef(git, ref, PathInfo(this.path).access(path).fullPath)
 }
