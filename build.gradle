@@ -62,7 +62,7 @@ subprojects {
     }
 
     dependencies {
-        testImplementation("junit:junit:4.13.2")
+        testImplementation(libs.junit)
         testImplementation("org.jetbrains.kotlin:kotlin-test:${libs.versions.kotlin.get()}")
         implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:${libs.versions.kotlin.get()}")
     }

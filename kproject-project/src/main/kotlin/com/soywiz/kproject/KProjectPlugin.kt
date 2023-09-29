@@ -84,7 +84,7 @@ class KProjectPlugin : Plugin<Project> {
                     }
                 }
             }
-            if (hasTarget(KProjectTarget.WASM)) {
+            if (hasTarget(KProjectTarget.WASM_JS)) {
                 wasm().apply {
                     browser()
                 }
