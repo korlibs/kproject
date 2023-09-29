@@ -5,17 +5,17 @@ dependencies {
     implementation(libs.jgit)
 }
 
-File srcgen = new File(project.buildDir, "srcgen")
+val srcgen = File(project.buildDir, "srcgen")
 kotlin.sourceSets.maybeCreate("main").kotlin.srcDirs(srcgen)
-File KProjectVersionKt = new File(srcgen, "KProjectVersion.kt")
-String KProjectVersionContent = """
+val KProjectVersionKt = File(srcgen, "KProjectVersion.kt")
+val KProjectVersionContent = """
 package com.soywiz.kproject.version
 
 object KProjectVersion {
     val VERSION = "${version}"
 }
 """
-if (!KProjectVersionKt.exists() || KProjectVersionKt.text != KProjectVersionContent) {
+if (!KProjectVersionKt.exists() || KProjectVersionKt.readText() != KProjectVersionContent) {
     srcgen.mkdirs()
-    KProjectVersionKt.text = KProjectVersionContent
+    KProjectVersionKt.writeText(KProjectVersionContent)
 }
