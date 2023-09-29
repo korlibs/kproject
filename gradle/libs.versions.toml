@@ -5,8 +5,11 @@ gson = "2.8.6"
 android-build-gradle = "7.3.1"
 #android-build-gradle = "7.4.0-beta02"
 junit = "4.13.2"
+jgit = "5.13.1.202206130422-r"
 
 [libraries]
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 junit = { module = "junit:junit", version.ref = "junit" }
+jgit = { module = "org.eclipse.jgit:org.eclipse.jgit", version.ref = "jgit" }
 android-build-gradle = { module = "com.android.tools.build:gradle", version.ref = "android-build-gradle" }
+kotlin-gradle = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }

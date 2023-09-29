@@ -2,7 +2,7 @@ dependencies {
     //implementation(gradleApi())
     //implementation(localGroovy())
     //implementation("org.eclipse.jgit:org.eclipse.jgit:6.3.0.202209071007-r")
-    implementation("org.eclipse.jgit:org.eclipse.jgit:5.13.1.202206130422-r")
+    implementation(libs.jgit)
 }
 
 File srcgen = new File(project.buildDir, "srcgen")

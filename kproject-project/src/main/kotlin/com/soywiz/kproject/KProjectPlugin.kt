@@ -60,7 +60,7 @@ class KProjectPlugin : Plugin<Project> {
             }
             if (hasTarget(KProjectTarget.ANDROID)) {
                 project.plugins.applyOnce("com.android.library")
-                android().apply {
+                androidTarget().apply {
                     compilations.all {
                         it.kotlinOptions.jvmTarget = androidJvmVersion
                     }
