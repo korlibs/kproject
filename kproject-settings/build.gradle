@@ -2,13 +2,11 @@ dependencies {
     implementation(project(":kproject-common"))
 }
 
-pluginBundle {
+gradlePlugin {
     website = "https://github.com/korlibs/kproject"
     vcsUrl = "https://github.com/korlibs/kproject"
-    tags = ["kproject", "git"]
-}
+    //tags = ["kproject", "git"]
 
-gradlePlugin {
     plugins {
         kprojectSettings {
             id = 'com.soywiz.kproject.settings'

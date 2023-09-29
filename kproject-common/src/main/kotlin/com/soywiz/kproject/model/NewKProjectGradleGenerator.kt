@@ -59,7 +59,15 @@ class NewKProjectGradleGenerator(val projectRootFolder: FileRef) {
                     }
                 }
                 buildGradleFile.writeText(buildString {
-                    appendLine("buildscript { repositories { mavenLocal(); mavenCentral(); google(); gradlePluginPortal() } }")
+                    appendLine("buildscript {")
+                    appendLine("    repositories {")
+                    appendLine("        mavenLocal(); mavenCentral(); google(); gradlePluginPortal()")
+                    appendLine("        maven { url = uri(\"https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev\") }")
+                    appendLine("        maven { url = uri(\"https://maven.pkg.jetbrains.space/kotlin/p/wasm/experimental\") }")
+                    appendLine("    }")
+                    appendLine("}")
+
+
                     appendLine("plugins {")
                     appendLine("  id(\"com.soywiz.kproject\") version \"${KProjectVersion.VERSION}\"")
 

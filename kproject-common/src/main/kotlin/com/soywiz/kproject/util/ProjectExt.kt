@@ -8,5 +8,7 @@ fun Project.defineStandardRepositories() {
         mavenCentral()
         google()
         gradlePluginPortal()
+        maven { it.url = uri("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev") }
+        maven { it.url = uri("https://maven.pkg.jetbrains.space/kotlin/p/wasm/experimental") }
     }
 }

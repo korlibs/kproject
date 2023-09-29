@@ -2,17 +2,15 @@
 
 dependencies {
     implementation(project(":kproject-common"))
-    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.8.21")
+    implementation(libs.kotlin.gradle)
     implementation(libs.android.build.gradle)
 }
 
-pluginBundle {
+gradlePlugin {
     website = "https://github.com/korlibs/kproject"
     vcsUrl = "https://github.com/korlibs/kproject"
-    tags = ["kproject", "git"]
-}
+    //tags = ["kproject", "git"]
 
-gradlePlugin {
     plugins {
         kproject {
             id = 'com.soywiz.kproject'

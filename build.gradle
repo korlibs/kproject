@@ -5,6 +5,7 @@ buildscript {
         mavenLocal()
         mavenCentral()
         maven { url = uri("https://plugins.gradle.org/m2/") }
+        maven { url = uri("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev") }
     }
     dependencies {
         classpath("com.gradle.publish:plugin-publish-plugin:1.2.0")
@@ -20,11 +21,23 @@ subprojects {
     apply plugin: "kotlin"
     apply plugin: 'maven-publish'
 
+    kotlin {
+        jvmToolchain(11) // Target version of generated JVM bytecode. See 7️⃣
+    }
+
+    tasks
+        .withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask.class)
+        .configureEach {
+            compilerOptions.apiVersion = org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_1_7
+            compilerOptions.languageVersion = org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_1_7
+        }
+
     repositories {
         mavenLocal()
         mavenCentral()
         google()
         maven { url = uri("https://plugins.gradle.org/m2/") }
+        maven { url = uri("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev") }
     }
 
     if (forcedVersion != null) {
@@ -49,7 +62,7 @@ subprojects {
     }
 
     dependencies {
-        testImplementation("junit:junit:4.13.2")
+        testImplementation(libs.junit)
         testImplementation("org.jetbrains.kotlin:kotlin-test:${libs.versions.kotlin.get()}")
         implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:${libs.versions.kotlin.get()}")
     }
