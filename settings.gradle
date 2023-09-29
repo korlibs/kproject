@@ -1,0 +1,15 @@
+pluginManagement {
+    repositories {
+        mavenLocal()
+        mavenCentral()
+        google()
+        gradlePluginPortal()
+        maven { url = uri("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev") }
+    }
+}
+
+rootProject.name = "kproject"
+
+include(":kproject-common")
+include(":kproject-project")
+include(":kproject-settings")
