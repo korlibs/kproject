@@ -20,7 +20,16 @@ data class GitRepository(val repo: String) {
 
     fun getCacheFolder(): File = File(getKProjectDir(), "clones/$cachePath")
 
-    fun getGit(): Git {
+    inline fun <T> useGit(block: (Git) -> T): T {
+        val git = getGit()
+        try {
+            return block(git)
+        } finally {
+            git.close()
+        }
+    }
+
+    @PublishedApi internal fun getGit(): Git {
         val gitFolder = File(getCacheFolder(), "/__git__")
 
         return when {
@@ -85,25 +94,26 @@ data class GitRepositoryWithPathAndRef(val repo: GitRepository, val path: String
         }
 
         if (!checkoutZip.exists() || !checkoutJson.exists()) {
-            val git = repo.getGit()
-            if (!git.checkRefExists(ref)) {
-                git.pull()
-                    .setProgressMonitor(TextProgressMonitor(PrintWriter(System.out)))
-                    .call()
+            repo.useGit { git ->
+                if (!git.checkRefExists(ref)) {
+                    git.pull()
+                        .setProgressMonitor(TextProgressMonitor(PrintWriter(System.out)))
+                        .call()
+                }
+                if (!git.checkRefExists(ref)) {
+                    error("Can't find ref='$ref' in $repo")
+                }
+                val zipBytes = git.archiveZip(path, ref)
+                checkoutZip.writeBytes(zipBytes)
+                //println("generateStableZipContent(zipBytes).sha256().str=${generateStableZipContent(zipBytes).sha256().str}")
+                checkoutJson.writeText(Json.stringify(
+                    mapOf(
+                        "contentHash" to generateStableZipContent(zipBytes).sha256().str,
+                        "commitId" to git.repository.resolve(ref).name,
+                        "commitCount" to git.countCommits(ref).toString()
+                    )
+                ))
             }
-            if (!git.checkRefExists(ref)) {
-                error("Can't find ref='$ref' in $repo")
-            }
-            val zipBytes = repo.getGit().archiveZip(path, ref)
-            checkoutZip.writeBytes(zipBytes)
-            //println("generateStableZipContent(zipBytes).sha256().str=${generateStableZipContent(zipBytes).sha256().str}")
-            checkoutJson.writeText(Json.stringify(
-                mapOf(
-                    "contentHash" to generateStableZipContent(zipBytes).sha256().str,
-                    "commitId" to git.repository.resolve(ref).name,
-                    "commitCount" to git.countCommits(ref).toString()
-                )
-            ))
         }
         val info = Json.parse(checkoutJson.readText()).dyn
         return Content(

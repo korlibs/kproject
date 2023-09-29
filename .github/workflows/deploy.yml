@@ -22,7 +22,7 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: 11
-      - run: chmod +x gradlew
+      - { name: Prepare Gradle, uses: gradle/gradle-build-action@ef76a971e2fa3f867b617efd72f2fbd72cf6f8bc } # v2.8.0
       - run: ./gradlew check
       - run: ./gradlew startReleasingMavenCentral
       - run: ./gradlew publishAllPublicationsToMavenRepository
